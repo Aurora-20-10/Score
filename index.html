@@ -3,19 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Web Đánh Giá Checklist</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: auto; }
     h2 { color: #333; }
     label { display: block; margin: 5px 0; }
     .result { margin-top: 20px; font-size: 18px; font-weight: bold; }
     .hidden { display: none; }
-    select, input[type="date"] { padding: 5px; margin-bottom: 15px; font-size: 16px; }
-    button { padding: 8px 12px; margin-top: 10px; font-size: 16px; cursor: pointer; }
-    table { margin-top: 20px; width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    select, button { padding: 5px; font-size: 16px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
     th { background-color: #f0f0f0; }
-    canvas { margin-top: 30px; max-width: 100%; }
   </style>
 </head>
 <body>
@@ -32,170 +29,200 @@
     <option value="soThich">6. Sở Thích – Dưỡng Khí</option>
     <option value="theDuc">7. Thể Dục – Cơ Xương – Dáng Form</option>
   </select>
-
-  <label for="date">Chọn ngày đánh giá:</label>
-  <input type="date" id="date" value="">
+  <input type="date" id="selected-date" />
+  <button onclick="saveProgress()">Lưu kết quả</button>
 
   <form id="checklist-form"></form>
 
   <div class="result">
+    Ngày: <span id="date"></span><br>
     Đã hoàn thành: <span id="count">0</span>/<span id="total">0</span><br>
     Hoàn thành: <span id="percent">0%</span><br>
-    Xếp loại: <span id="rank">Chưa xác định</span><br>
-    <button id="saveBtn">Lưu kết quả</button>
+    Xếp loại: <span id="rank">Chưa xác định</span>
   </div>
 
   <h3>Lịch sử đánh giá</h3>
-  <table id="historyTable">
+  <table id="history-table">
     <thead>
-      <tr>
-        <th>Ngày</th>
-        <th>Nhóm</th>
-        <th>Hoàn thành</th>
-        <th>Tổng</th>
-        <th>%</th>
-        <th>Xếp loại</th>
-      </tr>
+      <tr><th>Ngày</th><th>Nhóm</th><th>Hoàn thành</th><th>Xếp loại</th></tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <h3>Biểu đồ tiến độ (%) theo ngày</h3>
-  <canvas id="progressChart" height="300"></canvas>
-
   <script>
-    const checklistData = {};
-    const form = document.getElementById('checklist-form');
-    const countEl = document.getElementById('count');
-    const totalEl = document.getElementById('total');
-    const percentEl = document.getElementById('percent');
-    const rankEl = document.getElementById('rank');
-    const saveBtn = document.getElementById('saveBtn');
-    const historyTable = document.getElementById('historyTable').querySelector('tbody');
-    const categorySelector = document.getElementById('category');
-    const dateInput = document.getElementById('date');
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    let chart;
+const checklistData = {
+  chamCoThe: [
+    "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)",
+    "Rửa mặt sáng + tối",
+    "Thoa lotion body (cổ – vai – tay – chân)",
+    "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)",
+    "Đánh răng 2 lần/ngày",
+    "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài",
+    "Làm sạch môi – dưỡng môi",
+    "Tắm nước ấm buổi tối (xả stress, reset da)",
+    "Dưỡng da body tối (nếu không mệt)",
+    "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)"
+  ],
+  chamNhaCua: [
+    "Xếp chăn gọn sau khi ngủ dậy",
+    "Rửa chén bát trong ngày (không để tồn qua đêm)",
+    "Quét nhà hoặc lau chùi điểm bẩn rõ rệt",
+    "Không để đồ lung tung dưới đất",
+    "Dọn đồ trên bàn về đúng góc / vị trí",
+    "Đổ rác (tối)"
+  ],
+  dinhDuong: [
+    "1 cốc nước lọc ngay sau khi ngủ dậy",
+    "Uống nước 1.5–2L chia sáng/chiều/tối",
+    "2–3 bữa chính: đầy đủ carb tốt + đạm + rau",
+    "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix",
+    "1 bữa có rau xanh dạng lá (giúp tiêu hóa)",
+    "1–2 bữa có trái cây tươi",
+    "1 bữa có protein trắng (cá, gà, trứng)",
+    "Tránh để quá 6 tiếng không ăn",
+    "Không ăn khuya sau 9h tối (trừ khi tập nặng)"
+  ],
+  langPhi: [
+    "Hôm nay có bị rớt mode / tụt khí không? (Nếu có, tự xử chưa?)",
+    "Có để bản thân trì hoãn 2 tiếng liên tiếp không lý do?",
+    "Mạng xã hội / Tiktok hôm nay có tràn quá 30 phút không?",
+    "Có ngồi lướt kiểu vô thức quá 3 lần / ngày không?",
+    "Có bị kéo vào nhóm chat / bạn bè không thuộc vòng chiến lược?",
+    "Có để bản thân làm việc khi đã mệt / cạn pin không? (Nếu có, có nghỉ hồi pin chưa?)",
+    "Có ăn uống đúng khung để giữ nền năng lượng chưa?",
+    "Có bị cuốn vào những việc không có giá trị lâu dài? (Ví dụ: drama, thị phi, chuyện vô ích)",
+    "Có tiêu hao thời gian vì dọn dẹp / sắp xếp không dứt điểm?"
+  ],
+  aura: [
+    "Thở sâu, vươn người — mở lồng ngực 3–5 phút",
+    "Dành 10–15 phút ở một mình — không mạng, không nói",
+    "Dưỡng da cổ + vai (song song với dưỡng da mặt)",
+    "Ý thức: giữ mặt thả mềm, không cau — môi nhẹ tự nhiên",
+    "Nhìn gương 2 phút/ngày: mắt tỉnh — không gồng",
+    "Giọng nói: giữ đều, mềm, không cộc",
+    "Ăn uống chậm rãi — không nuốt vội",
+    "Nghe nhạc tầng cao (nhạc chill – nhạc nền Fantasy – Nature Sound)"
+  ],
+  soThich: [
+    "Xem múa cổ trang hoặc múa võ (10–30’)",
+    "Nghe nhạc cụ / sáo / đàn (10–40’)",
+    "Thưởng mùi thơm tự nhiên (tinh dầu / hoa / rượu trái cây)",
+    "Ngắm 1 hình mỹ nhân khí mềm hoặc khí tỉnh (5–10’)",
+    "Vẽ tranh / mặc đẹp / ngồi tĩnh giữa không gian đẹp (15–30’)",
+    "Uống nước ép / rượu trái cây (100–200ml)",
+    "Luyện giọng ấm (5–10 phút, buổi sáng hoặc tối)",
+    "Đọc truyện / bài phân tích sâu (30–60’)",
+    "Thu thập 1–3 mẫu / content mới để nạp pattern (15–30’)",
+    "Nghe / đọc tài chính – dòng tiền (15–45’)",
+    "Làm 1 lần “data hóa” – sơ đồ – hệ hóa 1 chủ đề đang học (tối đa 45’)",
+    "Quan sát 1 nhân vật / case người trong ngày → phân tích khí tầng",
+    "Vận động nhẹ / bơi / đi bộ / vươn căng 10–20 phút",
+    "Ăn 1 bữa ngon có tỉnh khí",
+    "Uống đủ nước ấm — không uống lạnh sau 21h",
+    "Tránh gió – lạnh – âm khí trực tiếp khi mệt"
+  ],
+  theDuc: [
+    "Kéo giãn nhẹ sau khi ngủ dậy (5 phút)",
+    "Đi bộ hoặc di chuyển cơ thể 15–30 phút (tránh ngồi lì)",
+    "Vươn vai, xoay cổ, gập người 2 lần/ngày (sáng – tối)",
+    "Giữ thẳng cột sống khi ngồi học/làm (ý thức chỉnh)",
+    "Xoa bụng theo chiều kim đồng hồ sau ăn (1 phút)",
+    "Nhẹ nhàng bóp chân – cổ chân trước khi ngủ"
+  ]
+};
 
-    dateInput.valueAsDate = new Date();
+const form = document.getElementById("checklist-form");
+const categorySelect = document.getElementById("category");
+const selectedDate = document.getElementById("selected-date");
+const dateSpan = document.getElementById("date");
+const countSpan = document.getElementById("count");
+const totalSpan = document.getElementById("total");
+const percentSpan = document.getElementById("percent");
+const rankSpan = document.getElementById("rank");
+const historyTable = document.getElementById("history-table").querySelector("tbody");
 
-    categorySelector.addEventListener('change', renderChecklist);
-    form.addEventListener('change', updateStats);
-    saveBtn.addEventListener('click', saveResult);
+categorySelect.addEventListener("change", loadChecklist);
+selectedDate.addEventListener("change", loadChecklist);
 
-    function renderChecklist() {
-      const group = categorySelector.value;
-      form.innerHTML = '';
-      if (!group || !checklistData[group]) return;
-      checklistData[group].forEach((item, i) => {
-        const label = document.createElement('label');
-        label.innerHTML = `<input type="checkbox" data-id="${i}"> ${item}`;
-        form.appendChild(label);
-      });
-      updateStats();
-    }
+function loadChecklist() {
+  form.innerHTML = "";
+  const group = categorySelect.value;
+  const date = selectedDate.value;
+  if (!group || !date) return;
 
-    function updateStats() {
-      const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-      const total = checkboxes.length;
-      let checked = 0;
-      checkboxes.forEach(cb => { if (cb.checked) checked++; });
-      const percent = total ? Math.round((checked / total) * 100) : 0;
-      let rank = 'Chưa xác định';
-      if (percent >= 80) rank = 'Hoàn thành tốt';
-      else if (percent >= 60) rank = 'Tạm ổn';
-      else rank = 'Cần cải thiện';
+  const items = checklistData[group];
+  items.forEach((item, index) => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.name = `check-${index}`;
+    checkbox.checked = getSavedData(date, group)?.[index] || false;
+    label.appendChild(checkbox);
+    label.append(` ${item}`);
+    form.appendChild(label);
+  });
 
-      countEl.textContent = checked;
-      totalEl.textContent = total;
-      percentEl.textContent = percent + '%';
-      rankEl.textContent = rank;
-    }
+  updateStats();
+  form.querySelectorAll("input").forEach(input =>
+    input.addEventListener("change", updateStats)
+  );
+}
 
-    function saveResult(e) {
-      e.preventDefault();
-      const group = categorySelector.value;
-      const date = dateInput.value;
-      const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-      if (!group || !date || checkboxes.length === 0) return;
+function updateStats() {
+  const date = selectedDate.value;
+  const group = categorySelect.value;
+  const items = checklistData[group];
+  const values = [...form.querySelectorAll("input")].map(i => i.checked);
+  const done = values.filter(v => v).length;
+  const percent = Math.round((done / items.length) * 100);
+  let rank = "Chưa xác định";
+  if (percent >= 90) rank = "Xuất sắc";
+  else if (percent >= 70) rank = "Tốt";
+  else if (percent >= 50) rank = "Trung bình";
+  else rank = "Cần cải thiện";
 
-      const total = checkboxes.length;
-      let checked = 0;
-      checkboxes.forEach(cb => { if (cb.checked) checked++; });
-      const percent = total ? Math.round((checked / total) * 100) : 0;
-      let rank = 'Chưa xác định';
-      if (percent >= 80) rank = 'Hoàn thành tốt';
-      else if (percent >= 60) rank = 'Tạm ổn';
-      else rank = 'Cần cải thiện';
+  dateSpan.textContent = date;
+  countSpan.textContent = done;
+  totalSpan.textContent = items.length;
+  percentSpan.textContent = percent + "%";
+  rankSpan.textContent = rank;
+}
 
-      const history = JSON.parse(localStorage.getItem('checklistHistory') || '[]');
-      history.push({ date, group, checked, total, percent, rank });
-      localStorage.setItem('checklistHistory', JSON.stringify(history));
-      renderHistory();
-      renderChart();
-    }
+function saveProgress() {
+  const date = selectedDate.value;
+  const group = categorySelect.value;
+  if (!date || !group) return;
 
-    function renderHistory() {
-      const history = JSON.parse(localStorage.getItem('checklistHistory') || '[]');
-      historyTable.innerHTML = '';
-      history.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${item.date}</td>
-          <td>${getGroupLabel(item.group)}</td>
-          <td>${item.checked}</td>
-          <td>${item.total}</td>
-          <td>${item.percent}%</td>
-          <td>${item.rank}</td>
-        `;
-        historyTable.appendChild(row);
-      });
-    }
+  const values = [...form.querySelectorAll("input")].map(i => i.checked);
+  localStorage.setItem(`checklist_${date}_${group}`, JSON.stringify(values));
+  addToHistory(date, group, values);
+  alert("Đã lưu!");
+}
 
-    function renderChart() {
-      const history = JSON.parse(localStorage.getItem('checklistHistory') || '[]');
-      const grouped = {};
-      history.forEach(item => {
-        if (!grouped[item.date]) grouped[item.date] = [];
-        grouped[item.date].push(item.percent);
-      });
-      const labels = Object.keys(grouped);
-      const data = labels.map(date => Math.round(grouped[date].reduce((a,b) => a+b, 0) / grouped[date].length));
+function getSavedData(date, group) {
+  const data = localStorage.getItem(`checklist_${date}_${group}`);
+  return data ? JSON.parse(data) : null;
+}
 
-      if (chart) chart.destroy();
-      chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: '% Hoàn thành trung bình',
-            data,
-            backgroundColor: '#4caf50'
-          }]
-        },
-        options: {
-          scales: {
-            y: { beginAtZero: true, max: 100 }
-          }
-        }
-      });
-    }
+function addToHistory(date, group, values) {
+  const existingRow = historyTable.querySelector(`tr[data-id="${date}_${group}"]`);
+  const done = values.filter(v => v).length;
+  const percent = Math.round((done / values.length) * 100);
+  let rank = "Chưa xác định";
+  if (percent >= 90) rank = "Xuất sắc";
+  else if (percent >= 70) rank = "Tốt";
+  else if (percent >= 50) rank = "Trung bình";
+  else rank = "Cần cải thiện";
 
-    function getGroupLabel(key) {
-      const map = {
-        chamCoThe: 'Chăm Cơ Thể',
-        chamNhaCua: 'Chăm Nhà Cửa',
-        dinhDuong: 'Dinh Dưỡng',
-        langPhi: 'Kiểm Soát Lãng Phí',
-        aura: 'Nâng Tầng Aura',
-        soThich: 'Sở Thích',
-        theDuc: 'Thể Dục – Cơ Xương'
-      };
-      return map[key] || key;
-    }
-
-    renderHistory();
-    renderChart();
+  if (existingRow) {
+    existingRow.innerHTML = `<td>${date}</td><td>${group}</td><td>${done}/${values.length}</td><td>${rank}</td>`;
+  } else {
+    const row = document.createElement("tr");
+    row.setAttribute("data-id", `${date}_${group}`);
+    row.innerHTML = `<td>${date}</td><td>${group}</td><td>${done}/${values.length}</td><td>${rank}</td>`;
+    historyTable.appendChild(row);
+  }
+}
   </script>
 </body>
 </html>
