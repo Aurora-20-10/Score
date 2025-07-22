@@ -2,61 +2,127 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Đánh Giá Checklist Cá Nhân</title>
+  <title>Web Đánh Giá Checklist</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
     h2 { color: #333; }
-    .group { margin-bottom: 20px; }
-    .group h3 { margin-bottom: 10px; color: #0066cc; }
     label { display: block; margin: 5px 0; }
     .result { margin-top: 20px; font-size: 18px; font-weight: bold; }
+    .hidden { display: none; }
+    select { padding: 5px; margin-bottom: 20px; font-size: 16px; }
   </style>
 </head>
 <body>
-
   <h2>Đánh Giá Checklist Cá Nhân</h2>
+  <label for="category">Chọn nhóm checklist:</label>
+  <select id="category">
+    <option value="">-- Chọn nhóm --</option>
+    <option value="chamCoThe">1. Chăm Cơ Thể</option>
+    <option value="chamNhaCua">2. Chăm Nhà Cửa</option>
+    <option value="dinhDuong">3. Dinh Dưỡng – Ẩm Thực</option>
+    <option value="langPhi">4. Kiểm Soát Lãng Phí</option>
+    <option value="aura">5. Nâng Tầng Aura</option>
+    <option value="soThich">6. Sở Thích – Dưỡng Khí</option>
+    <option value="theDuc">7. Thể Dục – Cơ Xương – Dáng Form</option>
+  </select>
 
-  <form id="checklist-form">
-    <div class="group">
-      <h3>Kỹ năng mềm</h3>
-      <label><input type="checkbox" data-score="10"> Giao tiếp hiệu quả (10đ)</label>
-      <label><input type="checkbox" data-score="15"> Giải quyết vấn đề (15đ)</label>
-      <label><input type="checkbox" data-score="10"> Làm việc nhóm (10đ)</label>
-    </div>
-
-    <div class="group">
-      <h3>Thái độ</h3>
-      <label><input type="checkbox" data-score="20"> Đúng giờ (20đ)</label>
-      <label><input type="checkbox" data-score="15"> Chủ động (15đ)</label>
-      <label><input type="checkbox" data-score="10"> Chịu trách nhiệm (10đ)</label>
-    </div>
-  </form>
+  <form id="checklist-form"></form>
 
   <div class="result">
-    Tổng điểm: <span id="total">0</span> điểm<br>
+    Đã hoàn thành: <span id="count">0</span>/<span id="total">0</span><br>
+    Hoàn thành: <span id="percent">0%</span><br>
     Xếp loại: <span id="rank">Chưa xác định</span>
   </div>
 
   <script>
+    const checklistData = {
+      chamCoThe: [
+        "Uống đủ nước 1.5 – 2L",
+        "Rửa mặt sáng + tối",
+        "Thoa lotion body",
+        "Chải tóc – xịt dưỡng tóc",
+        "Đánh răng 2 lần/ngày"
+      ],
+      chamNhaCua: [
+        "Xếp chăn sau khi ngủ dậy",
+        "Rửa chén trong ngày",
+        "Quét nhà hoặc lau điểm bẩn",
+        "Dọn bàn về đúng chỗ",
+        "Đổ rác buổi tối"
+      ],
+      dinhDuong: [
+        "1 cốc nước lọc sau khi ngủ dậy",
+        "Uống nước chia sáng – chiều – tối",
+        "Ăn đủ 2–3 bữa chính",
+        "Ăn bữa phụ nhẹ",
+        "1 bữa có rau xanh dạng lá"
+      ],
+      langPhi: [
+        "Hôm nay có bị tụt mode không?",
+        "Có trì hoãn 2 tiếng không lý do?",
+        "Lướt mạng quá 30 phút?",
+        "Bị cuốn vào việc vô ích?"
+      ],
+      aura: [
+        "Thở sâu, mở lồng ngực",
+        "Ở một mình 15 phút không mạng",
+        "Giữ mặt thả mềm",
+        "Nhìn gương 2 phút",
+        "Ăn uống chậm rãi"
+      ],
+      soThich: [
+        "Nghe nhạc cụ / sáo / đàn",
+        "Xem múa / mỹ nhân khí mềm",
+        "Uống nước ép hoặc rượu trái cây",
+        "Đọc truyện sâu hoặc tài chính",
+        "Quan sát và phân tích khí tầng"
+      ],
+      theDuc: [
+        "Kéo giãn sau ngủ dậy",
+        "Đi bộ / di chuyển 15–30 phút",
+        "Xoay cổ, gập người sáng – tối",
+        "Giữ thẳng cột sống khi ngồi",
+        "Bóp chân trước khi ngủ"
+      ]
+    };
+
     const form = document.getElementById('checklist-form');
+    const countEl = document.getElementById('count');
     const totalEl = document.getElementById('total');
+    const percentEl = document.getElementById('percent');
     const rankEl = document.getElementById('rank');
 
-    form.addEventListener('change', () => {
-      let total = 0;
-      const inputs = form.querySelectorAll('input[type="checkbox"]');
-      inputs.forEach(input => {
-        if (input.checked) total += parseInt(input.dataset.score);
+    document.getElementById('category').addEventListener('change', function() {
+      const group = this.value;
+      form.innerHTML = '';
+      if (!group || !checklistData[group]) return;
+
+      checklistData[group].forEach((item, i) => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" data-id="${i}"> ${item}`;
+        form.appendChild(label);
       });
-      totalEl.textContent = total;
-
-      let rank = '';
-      if (total >= 80) rank = 'Xuất sắc';
-      else if (total >= 60) rank = 'Khá';
-      else rank = 'Cần cải thiện';
-      rankEl.textContent = rank;
+      updateStats();
     });
-  </script>
 
+    form.addEventListener('change', updateStats);
+
+    function updateStats() {
+      const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+      const total = checkboxes.length;
+      let checked = 0;
+      checkboxes.forEach(cb => { if (cb.checked) checked++; });
+      const percent = total ? Math.round((checked / total) * 100) : 0;
+      let rank = 'Chưa xác định';
+      if (percent >= 80) rank = 'Hoàn thành tốt';
+      else if (percent >= 60) rank = 'Tạm ổn';
+      else rank = 'Cần cải thiện';
+
+      countEl.textContent = checked;
+      totalEl.textContent = total;
+      percentEl.textContent = percent + '%';
+      rankEl.textContent = rank;
+    }
+  </script>
 </body>
 </html>
