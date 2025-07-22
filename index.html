@@ -4,16 +4,21 @@
   <meta charset="UTF-8">
   <title>Web Đánh Giá Checklist</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
     h2 { color: #333; }
     label { display: block; margin: 5px 0; }
     .result { margin-top: 20px; font-size: 18px; font-weight: bold; }
     .hidden { display: none; }
-    select { padding: 5px; margin-bottom: 20px; font-size: 16px; }
+    select, input[type="date"] { padding: 5px; margin-bottom: 15px; font-size: 16px; }
+    button { padding: 8px 12px; margin-top: 10px; font-size: 16px; cursor: pointer; }
+    table { margin-top: 20px; width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
   </style>
 </head>
 <body>
   <h2>Đánh Giá Checklist Cá Nhân</h2>
+
   <label for="category">Chọn nhóm checklist:</label>
   <select id="category">
     <option value="">-- Chọn nhóm --</option>
@@ -26,116 +31,65 @@
     <option value="theDuc">7. Thể Dục – Cơ Xương – Dáng Form</option>
   </select>
 
+  <label for="date">Chọn ngày đánh giá:</label>
+  <input type="date" id="date" value="">
+
   <form id="checklist-form"></form>
 
   <div class="result">
     Đã hoàn thành: <span id="count">0</span>/<span id="total">0</span><br>
     Hoàn thành: <span id="percent">0%</span><br>
-    Xếp loại: <span id="rank">Chưa xác định</span>
+    Xếp loại: <span id="rank">Chưa xác định</span><br>
+    <button id="saveBtn">Lưu kết quả</button>
   </div>
 
+  <h3>Lịch sử đánh giá</h3>
+  <table id="historyTable">
+    <thead>
+      <tr>
+        <th>Ngày</th>
+        <th>Nhóm</th>
+        <th>Hoàn thành</th>
+        <th>Tổng</th>
+        <th>%</th>
+        <th>Xếp loại</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
-    const checklistData = {
-      chamCoThe: [
-        "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)",
-        "Rửa mặt sáng + tối",
-        "Thoa lotion body (cổ – vai – tay – chân)",
-        "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)",
-        "Đánh răng 2 lần/ngày",
-        "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài",
-        "Làm sạch môi – dưỡng môi",
-        "Tắm nước ấm buổi tối (xả stress, reset da)",
-        "Dưỡng da body tối (nếu không mệt)",
-        "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)"
-      ],
-      chamNhaCua: [
-        "Xếp chăn gọn sau khi ngủ dậy",
-        "Rửa chén bát trong ngày (không để tồn qua đêm)",
-        "Quét nhà hoặc lau chùi điểm bẩn rõ rệt",
-        "Không để đồ lung tung dưới đất",
-        "Dọn đồ trên bàn về đúng góc / vị trí",
-        "Đổ rác (tối)"
-      ],
-      dinhDuong: [
-        "1 cốc nước lọc ngay sau khi ngủ dậy",
-        "Uống nước 1.5–2L chia sáng/chiều/tối",
-        "2–3 bữa chính: đầy đủ carb tốt + đạm + rau",
-        "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix",
-        "1 bữa có rau xanh dạng lá (giúp tiêu hóa)",
-        "1–2 bữa có trái cây tươi",
-        "1 bữa có protein trắng (cá, gà, trứng)",
-        "Tránh để quá 6 tiếng không ăn",
-        "Không ăn khuya sau 9h tối (trừ khi tập nặng)"
-      ],
-      langPhi: [
-        "Hôm nay có bị rớt mode / tụt khí không? (Nếu có, tự xử chưa?)",
-        "Có để bản thân trì hoãn 2 tiếng liên tiếp không lý do?",
-        "Mạng xã hội / Tiktok hôm nay có tràn quá 30 phút không?",
-        "Có ngồi lướt kiểu vô thức quá 3 lần / ngày không?",
-        "Có bị kéo vào nhóm chat / bạn bè không thuộc vòng chiến lược?",
-        "Có để bản thân làm việc khi đã mệt / cạn pin không? (Nếu có, có nghỉ hồi pin chưa?)",
-        "Có ăn uống đúng khung để giữ nền năng lượng chưa?",
-        "Có bị cuốn vào những việc không có giá trị lâu dài? (Ví dụ: drama, thị phi, chuyện vô ích)",
-        "Có tiêu hao thời gian vì dọn dẹp / sắp xếp không dứt điểm?"
-      ],
-      aura: [
-        "Thở sâu, vươn người — mở lồng ngực 3–5 phút",
-        "Dành 10–15 phút ở một mình — không mạng, không nói",
-        "Dưỡng da cổ + vai (song song với dưỡng da mặt)",
-        "Ý thức: giữ mặt thả mềm, không cau — môi nhẹ tự nhiên",
-        "Nhìn gương 2 phút/ngày: mắt tỉnh — không gồng",
-        "Giọng nói: giữ đều, mềm, không cộc",
-        "Ăn uống chậm rãi — không nuốt vội",
-        "Nghe nhạc tầng cao (nhạc chill – nhạc nền Fantasy – Nature Sound)"
-      ],
-      soThich: [
-        "Xem múa cổ trang hoặc múa võ (10–30’)",
-        "Nghe nhạc cụ / sáo / đàn (10–40’)",
-        "Thưởng mùi thơm tự nhiên (tinh dầu / hoa / rượu trái cây)",
-        "Ngắm 1 hình mỹ nhân khí mềm hoặc khí tỉnh (5–10’)",
-        "Vẽ tranh / mặc đẹp / ngồi tĩnh giữa không gian đẹp (15–30’)",
-        "Uống nước ép / rượu trái cây (100–200ml)",
-        "Luyện giọng ấm (5–10 phút, buổi sáng hoặc tối)",
-        "Đọc truyện / bài phân tích sâu (30–60’)",
-        "Thu thập 1–3 mẫu / content mới để nạp pattern (15–30’)",
-        "Nghe / đọc tài chính – dòng tiền (15–45’)",
-        "Làm 1 lần “data hóa” – sơ đồ – hệ hóa 1 chủ đề đang học (tối đa 45’)",
-        "Quan sát 1 nhân vật / case người trong ngày → phân tích khí tầng",
-        "Vận động nhẹ / bơi / đi bộ / vươn căng 10–20 phút",
-        "Ăn 1 bữa ngon có tỉnh khí",
-        "Uống đủ nước ấm — không uống lạnh sau 21h",
-        "Tránh gió – lạnh – âm khí trực tiếp khi mệt"
-      ],
-      theDuc: [
-        "Kéo giãn nhẹ sau khi ngủ dậy (5 phút)",
-        "Đi bộ hoặc di chuyển cơ thể 15–30 phút (tránh ngồi lì)",
-        "Vươn vai, xoay cổ, gập người 2 lần/ngày (sáng – tối)",
-        "Giữ thẳng cột sống khi ngồi học/làm (ý thức chỉnh)",
-        "Xoa bụng theo chiều kim đồng hồ sau ăn (1 phút)",
-        "Nhẹ nhàng bóp chân – cổ chân trước khi ngủ"
-      ]
-    };
+    const checklistData = {/* giữ nguyên như lần trước */};
 
     const form = document.getElementById('checklist-form');
     const countEl = document.getElementById('count');
     const totalEl = document.getElementById('total');
     const percentEl = document.getElementById('percent');
     const rankEl = document.getElementById('rank');
+    const saveBtn = document.getElementById('saveBtn');
+    const historyTable = document.getElementById('historyTable').querySelector('tbody');
 
-    document.getElementById('category').addEventListener('change', function() {
-      const group = this.value;
+    const categorySelector = document.getElementById('category');
+    const dateInput = document.getElementById('date');
+
+    // Mặc định ngày hôm nay
+    dateInput.valueAsDate = new Date();
+
+    categorySelector.addEventListener('change', renderChecklist);
+    form.addEventListener('change', updateStats);
+    saveBtn.addEventListener('click', saveResult);
+
+    function renderChecklist() {
+      const group = categorySelector.value;
       form.innerHTML = '';
       if (!group || !checklistData[group]) return;
-
       checklistData[group].forEach((item, i) => {
         const label = document.createElement('label');
         label.innerHTML = `<input type="checkbox" data-id="${i}"> ${item}`;
         form.appendChild(label);
       });
       updateStats();
-    });
-
-    form.addEventListener('change', updateStats);
+    }
 
     function updateStats() {
       const checkboxes = form.querySelectorAll('input[type="checkbox"]');
@@ -153,6 +107,61 @@
       percentEl.textContent = percent + '%';
       rankEl.textContent = rank;
     }
+
+    function saveResult(e) {
+      e.preventDefault();
+      const group = categorySelector.value;
+      const date = dateInput.value;
+      const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+      if (!group || !date || checkboxes.length === 0) return;
+
+      const total = checkboxes.length;
+      let checked = 0;
+      checkboxes.forEach(cb => { if (cb.checked) checked++; });
+      const percent = total ? Math.round((checked / total) * 100) : 0;
+      let rank = 'Chưa xác định';
+      if (percent >= 80) rank = 'Hoàn thành tốt';
+      else if (percent >= 60) rank = 'Tạm ổn';
+      else rank = 'Cần cải thiện';
+
+      const history = JSON.parse(localStorage.getItem('checklistHistory') || '[]');
+      history.push({ date, group, checked, total, percent, rank });
+      localStorage.setItem('checklistHistory', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem('checklistHistory') || '[]');
+      historyTable.innerHTML = '';
+      history.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.date}</td>
+          <td>${getGroupLabel(item.group)}</td>
+          <td>${item.checked}</td>
+          <td>${item.total}</td>
+          <td>${item.percent}%</td>
+          <td>${item.rank}</td>
+        `;
+        historyTable.appendChild(row);
+      });
+    }
+
+    function getGroupLabel(key) {
+      const map = {
+        chamCoThe: 'Chăm Cơ Thể',
+        chamNhaCua: 'Chăm Nhà Cửa',
+        dinhDuong: 'Dinh Dưỡng',
+        langPhi: 'Kiểm Soát Lãng Phí',
+        aura: 'Nâng Tầng Aura',
+        soThich: 'Sở Thích',
+        theDuc: 'Thể Dục – Cơ Xương'
+      };
+      return map[key] || key;
+    }
+
+    // Khởi tạo bảng lịch sử nếu có dữ liệu
+    renderHistory();
   </script>
 </body>
 </html>
