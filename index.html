@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Web Đánh Giá Checklist</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
     h2 { color: #333; }
@@ -14,6 +15,7 @@
     table { margin-top: 20px; width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f0f0f0; }
+    canvas { margin-top: 30px; max-width: 100%; }
   </style>
 </head>
 <body>
@@ -58,9 +60,11 @@
     <tbody></tbody>
   </table>
 
-  <script>
-    const checklistData = {/* giữ nguyên như lần trước */};
+  <h3>Biểu đồ tiến độ (%) theo ngày</h3>
+  <canvas id="progressChart" height="300"></canvas>
 
+  <script>
+    const checklistData = {};
     const form = document.getElementById('checklist-form');
     const countEl = document.getElementById('count');
     const totalEl = document.getElementById('total');
@@ -68,11 +72,11 @@
     const rankEl = document.getElementById('rank');
     const saveBtn = document.getElementById('saveBtn');
     const historyTable = document.getElementById('historyTable').querySelector('tbody');
-
     const categorySelector = document.getElementById('category');
     const dateInput = document.getElementById('date');
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    let chart;
 
-    // Mặc định ngày hôm nay
     dateInput.valueAsDate = new Date();
 
     categorySelector.addEventListener('change', renderChecklist);
@@ -128,6 +132,7 @@
       history.push({ date, group, checked, total, percent, rank });
       localStorage.setItem('checklistHistory', JSON.stringify(history));
       renderHistory();
+      renderChart();
     }
 
     function renderHistory() {
@@ -147,6 +152,35 @@
       });
     }
 
+    function renderChart() {
+      const history = JSON.parse(localStorage.getItem('checklistHistory') || '[]');
+      const grouped = {};
+      history.forEach(item => {
+        if (!grouped[item.date]) grouped[item.date] = [];
+        grouped[item.date].push(item.percent);
+      });
+      const labels = Object.keys(grouped);
+      const data = labels.map(date => Math.round(grouped[date].reduce((a,b) => a+b, 0) / grouped[date].length));
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: '% Hoàn thành trung bình',
+            data,
+            backgroundColor: '#4caf50'
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
+        }
+      });
+    }
+
     function getGroupLabel(key) {
       const map = {
         chamCoThe: 'Chăm Cơ Thể',
@@ -160,8 +194,8 @@
       return map[key] || key;
     }
 
-    // Khởi tạo bảng lịch sử nếu có dữ liệu
     renderHistory();
+    renderChart();
   </script>
 </body>
 </html>
