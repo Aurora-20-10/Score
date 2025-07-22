@@ -37,52 +37,82 @@
   <script>
     const checklistData = {
       chamCoThe: [
-        "Uống đủ nước 1.5 – 2L",
+        "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)",
         "Rửa mặt sáng + tối",
-        "Thoa lotion body",
-        "Chải tóc – xịt dưỡng tóc",
-        "Đánh răng 2 lần/ngày"
+        "Thoa lotion body (cổ – vai – tay – chân)",
+        "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)",
+        "Đánh răng 2 lần/ngày",
+        "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài",
+        "Làm sạch môi – dưỡng môi",
+        "Tắm nước ấm buổi tối (xả stress, reset da)",
+        "Dưỡng da body tối (nếu không mệt)",
+        "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)"
       ],
       chamNhaCua: [
-        "Xếp chăn sau khi ngủ dậy",
-        "Rửa chén trong ngày",
-        "Quét nhà hoặc lau điểm bẩn",
-        "Dọn bàn về đúng chỗ",
-        "Đổ rác buổi tối"
+        "Xếp chăn gọn sau khi ngủ dậy",
+        "Rửa chén bát trong ngày (không để tồn qua đêm)",
+        "Quét nhà hoặc lau chùi điểm bẩn rõ rệt",
+        "Không để đồ lung tung dưới đất",
+        "Dọn đồ trên bàn về đúng góc / vị trí",
+        "Đổ rác (tối)"
       ],
       dinhDuong: [
-        "1 cốc nước lọc sau khi ngủ dậy",
-        "Uống nước chia sáng – chiều – tối",
-        "Ăn đủ 2–3 bữa chính",
-        "Ăn bữa phụ nhẹ",
-        "1 bữa có rau xanh dạng lá"
+        "1 cốc nước lọc ngay sau khi ngủ dậy",
+        "Uống nước 1.5–2L chia sáng/chiều/tối",
+        "2–3 bữa chính: đầy đủ carb tốt + đạm + rau",
+        "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix",
+        "1 bữa có rau xanh dạng lá (giúp tiêu hóa)",
+        "1–2 bữa có trái cây tươi",
+        "1 bữa có protein trắng (cá, gà, trứng)",
+        "Tránh để quá 6 tiếng không ăn",
+        "Không ăn khuya sau 9h tối (trừ khi tập nặng)"
       ],
       langPhi: [
-        "Hôm nay có bị tụt mode không?",
-        "Có trì hoãn 2 tiếng không lý do?",
-        "Lướt mạng quá 30 phút?",
-        "Bị cuốn vào việc vô ích?"
+        "Hôm nay có bị rớt mode / tụt khí không? (Nếu có, tự xử chưa?)",
+        "Có để bản thân trì hoãn 2 tiếng liên tiếp không lý do?",
+        "Mạng xã hội / Tiktok hôm nay có tràn quá 30 phút không?",
+        "Có ngồi lướt kiểu vô thức quá 3 lần / ngày không?",
+        "Có bị kéo vào nhóm chat / bạn bè không thuộc vòng chiến lược?",
+        "Có để bản thân làm việc khi đã mệt / cạn pin không? (Nếu có, có nghỉ hồi pin chưa?)",
+        "Có ăn uống đúng khung để giữ nền năng lượng chưa?",
+        "Có bị cuốn vào những việc không có giá trị lâu dài? (Ví dụ: drama, thị phi, chuyện vô ích)",
+        "Có tiêu hao thời gian vì dọn dẹp / sắp xếp không dứt điểm?"
       ],
       aura: [
-        "Thở sâu, mở lồng ngực",
-        "Ở một mình 15 phút không mạng",
-        "Giữ mặt thả mềm",
-        "Nhìn gương 2 phút",
-        "Ăn uống chậm rãi"
+        "Thở sâu, vươn người — mở lồng ngực 3–5 phút",
+        "Dành 10–15 phút ở một mình — không mạng, không nói",
+        "Dưỡng da cổ + vai (song song với dưỡng da mặt)",
+        "Ý thức: giữ mặt thả mềm, không cau — môi nhẹ tự nhiên",
+        "Nhìn gương 2 phút/ngày: mắt tỉnh — không gồng",
+        "Giọng nói: giữ đều, mềm, không cộc",
+        "Ăn uống chậm rãi — không nuốt vội",
+        "Nghe nhạc tầng cao (nhạc chill – nhạc nền Fantasy – Nature Sound)"
       ],
       soThich: [
-        "Nghe nhạc cụ / sáo / đàn",
-        "Xem múa / mỹ nhân khí mềm",
-        "Uống nước ép hoặc rượu trái cây",
-        "Đọc truyện sâu hoặc tài chính",
-        "Quan sát và phân tích khí tầng"
+        "Xem múa cổ trang hoặc múa võ (10–30’)",
+        "Nghe nhạc cụ / sáo / đàn (10–40’)",
+        "Thưởng mùi thơm tự nhiên (tinh dầu / hoa / rượu trái cây)",
+        "Ngắm 1 hình mỹ nhân khí mềm hoặc khí tỉnh (5–10’)",
+        "Vẽ tranh / mặc đẹp / ngồi tĩnh giữa không gian đẹp (15–30’)",
+        "Uống nước ép / rượu trái cây (100–200ml)",
+        "Luyện giọng ấm (5–10 phút, buổi sáng hoặc tối)",
+        "Đọc truyện / bài phân tích sâu (30–60’)",
+        "Thu thập 1–3 mẫu / content mới để nạp pattern (15–30’)",
+        "Nghe / đọc tài chính – dòng tiền (15–45’)",
+        "Làm 1 lần “data hóa” – sơ đồ – hệ hóa 1 chủ đề đang học (tối đa 45’)",
+        "Quan sát 1 nhân vật / case người trong ngày → phân tích khí tầng",
+        "Vận động nhẹ / bơi / đi bộ / vươn căng 10–20 phút",
+        "Ăn 1 bữa ngon có tỉnh khí",
+        "Uống đủ nước ấm — không uống lạnh sau 21h",
+        "Tránh gió – lạnh – âm khí trực tiếp khi mệt"
       ],
       theDuc: [
-        "Kéo giãn sau ngủ dậy",
-        "Đi bộ / di chuyển 15–30 phút",
-        "Xoay cổ, gập người sáng – tối",
-        "Giữ thẳng cột sống khi ngồi",
-        "Bóp chân trước khi ngủ"
+        "Kéo giãn nhẹ sau khi ngủ dậy (5 phút)",
+        "Đi bộ hoặc di chuyển cơ thể 15–30 phút (tránh ngồi lì)",
+        "Vươn vai, xoay cổ, gập người 2 lần/ngày (sáng – tối)",
+        "Giữ thẳng cột sống khi ngồi học/làm (ý thức chỉnh)",
+        "Xoa bụng theo chiều kim đồng hồ sau ăn (1 phút)",
+        "Nhẹ nhàng bóp chân – cổ chân trước khi ngủ"
       ]
     };
 
