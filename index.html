@@ -157,19 +157,9 @@ function loadChecklist() {
     checkbox.type = "checkbox";
     checkbox.name = `check-${index}`;
     checkbox.checked = getSavedData(date, group)?.[index] || false;
-label.appendChild(checkbox);
-label.append(` ${item}`);
-
-// 👇 Thêm input minh chứng
-const evidenceInput = document.createElement("input");
-evidenceInput.type = "file";
-evidenceInput.name = `evidence-${index}`;
-evidenceInput.accept = "image/*,video/*,audio/*";
-evidenceInput.style.marginLeft = "10px";
-label.appendChild(evidenceInput);
-
-form.appendChild(label);
-
+    label.appendChild(checkbox);
+    label.append(` ${item}`);
+    form.appendChild(label);
   });
 
   updateStats();
@@ -203,17 +193,7 @@ function saveProgress() {
   const group = categorySelect.value;
   if (!date || !group) return;
 
-const checkboxes = [...form.querySelectorAll("input[type=checkbox]")];
-const files = [...form.querySelectorAll("input[type=file]")];
-
-const values = checkboxes.map(i => i.checked);
-checkboxes.forEach((checkbox, index) => {
-  const file = files[index]?.files?.[0];
-  if (file) {
-    uploadEvidence(file, date, group, index);
-  }
-});
-
+  const values = [...form.querySelectorAll("input")].map(i => i.checked);
   localStorage.setItem(`checklist_${date}_${group}`, JSON.stringify(values));
   addToHistory(date, group, values);
   alert("Đã lưu!");
@@ -243,29 +223,8 @@ function addToHistory(date, group, values) {
     historyTable.appendChild(row);
   }
 }
-
-    function uploadEvidence(file, date, group, index) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("date", date);
-  formData.append("group", group);
-  formData.append("index", index);
-
-  return fetch("https://script.google.com/macros/s/AKfycbwA4gMJEmf7dG64n2-U4H3PF1EOEAT3_BoNePjFvYS7FzmXFFC2agRdHhVCFzoWexMS/exec", {
-    method: "POST",
-    body: formData,
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.url) {
-        console.log(`Uploaded evidence for ${group} ${index}: ${data.url}`);
-      } else {
-        console.warn("Upload failed", data);
-      }
-    })
-    .catch(err => console.error("Upload error", err));
-}
-
   </script>
 </body>
 </html>
+
+Cắn cứ vào đây chỉ số dòng luôn đi cho 3 khối để t biết đờờng
