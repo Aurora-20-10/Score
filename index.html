@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đánh Giá Checklist Cá Nhân</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    h2 { color: #333; }
+    .group { margin-bottom: 20px; }
+    .group h3 { margin-bottom: 10px; color: #0066cc; }
+    label { display: block; margin: 5px 0; }
+    .result { margin-top: 20px; font-size: 18px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>Đánh Giá Checklist Cá Nhân</h2>
+
+  <form id="checklist-form">
+    <div class="group">
+      <h3>Kỹ năng mềm</h3>
+      <label><input type="checkbox" data-score="10"> Giao tiếp hiệu quả (10đ)</label>
+      <label><input type="checkbox" data-score="15"> Giải quyết vấn đề (15đ)</label>
+      <label><input type="checkbox" data-score="10"> Làm việc nhóm (10đ)</label>
+    </div>
+
+    <div class="group">
+      <h3>Thái độ</h3>
+      <label><input type="checkbox" data-score="20"> Đúng giờ (20đ)</label>
+      <label><input type="checkbox" data-score="15"> Chủ động (15đ)</label>
+      <label><input type="checkbox" data-score="10"> Chịu trách nhiệm (10đ)</label>
+    </div>
+  </form>
+
+  <div class="result">
+    Tổng điểm: <span id="total">0</span> điểm<br>
+    Xếp loại: <span id="rank">Chưa xác định</span>
+  </div>
+
+  <script>
+    const form = document.getElementById('checklist-form');
+    const totalEl = document.getElementById('total');
+    const rankEl = document.getElementById('rank');
+
+    form.addEventListener('change', () => {
+      let total = 0;
+      const inputs = form.querySelectorAll('input[type="checkbox"]');
+      inputs.forEach(input => {
+        if (input.checked) total += parseInt(input.dataset.score);
+      });
+      totalEl.textContent = total;
+
+      let rank = '';
+      if (total >= 80) rank = 'Xuất sắc';
+      else if (total >= 60) rank = 'Khá';
+      else rank = 'Cần cải thiện';
+      rankEl.textContent = rank;
+    });
+  </script>
+
+</body>
+</html>
