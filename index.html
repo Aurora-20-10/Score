@@ -18,6 +18,11 @@
 <body>
   <h2>Đánh Giá Checklist Cá Nhân</h2>
 
+  <div>
+    <button id="login-btn">Đăng nhập bằng Google</button>
+    <span id="user-info"></span>
+  </div>
+  
   <label for="category">Chọn nhóm checklist:</label>
   <select id="category">
     <option value="">-- Chọn nhóm --</option>
@@ -49,6 +54,10 @@
     <tbody></tbody>
   </table>
 
+   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  
   <script>
 const checklistData = {
   chamCoThe: [
@@ -140,23 +149,79 @@ const totalSpan = document.getElementById("total");
 const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
 const historyTable = document.getElementById("history-table").querySelector("tbody");
+const loginBtn = document.getElementById("login-btn");
+const userInfo = document.getElementById("user-info");
 
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+
+loginBtn.addEventListener("click", () => {
+  if (currentUser) {
+    auth.signOut();
+  } else {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+});
+
+auth.onAuthStateChanged(async user => {
+  currentUser = user;
+  if (user) {
+    loginBtn.textContent = "Đăng xuất";
+    userInfo.textContent = user.displayName || user.email;
+    await loadHistoryFromCloud();
+  } else {
+    loginBtn.textContent = "Đăng nhập bằng Google";
+    userInfo.textContent = "";
+    loadLocalHistory();
+  }
+}); 
 categorySelect.addEventListener("change", loadChecklist);
 selectedDate.addEventListener("change", loadChecklist);
 
-function loadChecklist() {
+function loadLocalHistory() {
+  historyTable.innerHTML = "";
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith("checklist_")) {
+      const [, date, group] = key.split("_");
+      const values = JSON.parse(localStorage.getItem(key));
+      addToHistory(date, group, values);
+    }
+  });
+}
+
+async function loadHistoryFromCloud() {
+  loadLocalHistory();
+  if (!currentUser) return;
+  const snap = await db.collection("users").doc(currentUser.uid).collection("checklists").get();
+  snap.forEach(doc => {
+    const [date, group] = doc.id.split("_");
+    addToHistory(date, group, doc.data().values);
+  });
+}
+
+async function loadChecklist() {
   form.innerHTML = "";
   const group = categorySelect.value;
   const date = selectedDate.value;
   if (!group || !date) return;
 
   const items = checklistData[group];
+  let values = getSavedData(date, group);
   items.forEach((item, index) => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.name = `check-${index}`;
-    checkbox.checked = getSavedData(date, group)?.[index] || false;
+    checkbox.checked = values?.[index] || false;
     label.appendChild(checkbox);
     label.append(` ${item}`);
     form.appendChild(label);
@@ -168,6 +233,16 @@ function loadChecklist() {
   );
 }
 
+ if (currentUser) {
+    const cloud = await getCloudData(date, group);
+    if (cloud) {
+      form.querySelectorAll("input").forEach((input, idx) => {
+        input.checked = cloud[idx];
+      });
+      updateStats();
+    }
+  }
+    
 function updateStats() {
   const date = selectedDate.value;
   const group = categorySelect.value;
@@ -188,13 +263,18 @@ function updateStats() {
   rankSpan.textContent = rank;
 }
 
-function saveProgress() {
+async function saveProgress() {
   const date = selectedDate.value;
   const group = categorySelect.value;
   if (!date || !group) return;
 
   const values = [...form.querySelectorAll("input")].map(i => i.checked);
   localStorage.setItem(`checklist_${date}_${group}`, JSON.stringify(values));
+  if (currentUser) {
+    await db.collection("users").doc(currentUser.uid)
+      .collection("checklists").doc(`${date}_${group}`)
+      .set({ values });
+  }
   addToHistory(date, group, values);
   alert("Đã lưu!");
 }
@@ -204,6 +284,14 @@ function getSavedData(date, group) {
   return data ? JSON.parse(data) : null;
 }
 
+async function getCloudData(date, group) {
+  if (!currentUser) return null;
+  const docRef = db.collection("users").doc(currentUser.uid)
+    .collection("checklists").doc(`${date}_${group}`);
+  const snap = await docRef.get();
+  return snap.exists ? snap.data().values : null;
+}
+    
 function addToHistory(date, group, values) {
   const existingRow = historyTable.querySelector(`tr[data-id="${date}_${group}"]`);
   const done = values.filter(v => v).length;
