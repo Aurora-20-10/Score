@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Upload file → Google Drive</title>
+</head>
+<body>
+  <h2>Upload file của bạn</h2>
+  <form id="uploadForm">
+    <input type="file" id="fileInput" required>
+    <button type="submit">Upload</button>
+  </form>
+  <div id="result"></div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return alert("Chọn file trước!");
+
+  // FormData để gửi file
+  const formData = new FormData();
+  formData.append('file', file);
+
+  // Gọi API Google Apps Script
+  const res = await fetch('https://script.google.com/macros/s/AKfycbx8LeuewSHKR4lnDKLJNZYN_hsIlAbpa_GKAIxHFP7ktpZdPM62xTHOL7gLVNw_zRL_Aw/exec', {
+    method: 'POST',
+    body: formData
+  });
+
+  const link = await res.text();
+  document.getElementById('result').innerHTML = `<p>Link của bạn: <a href="${link}" target="_blank">${link}</a></p>`;
+});
+</script>
+</body>
+</html>
