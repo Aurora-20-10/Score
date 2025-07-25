@@ -34,6 +34,8 @@
   <button onclick="exportData()">Xuất dữ liệu</button>
   <button onclick="triggerImport()">Nhập dữ liệu</button>
   <input type="file" id="import-file" accept=".json" class="hidden" />
+  <button onclick="undoChange()">Hoàn tác</button>
+
   <form id="checklist-form"></form>
 
   <div class="result">
@@ -143,6 +145,8 @@ const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
 const historyTable = document.getElementById("history-table").querySelector("tbody");
 
+let currentValues = [];
+let undoStack = [];
   }
 }); 
 categorySelect.addEventListener("change", loadChecklist);
@@ -177,12 +181,14 @@ async function loadChecklist() {
 
   const items = checklistData[group];
   let values = getSavedData(date, group);
+  currentValues = values || items.map(() => false);
+  undoStack = [];
   items.forEach((item, index) => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.name = `check-${index}`;
-    checkbox.checked = values?.[index] || false;
+    checkbox.checked = currentValues[index];
     label.appendChild(checkbox);
     label.append(` ${item}`);
     form.appendChild(label);
@@ -190,7 +196,7 @@ async function loadChecklist() {
 
   updateStats();
   form.querySelectorAll("input").forEach(input =>
-    input.addEventListener("change", updateStats)
+    input.addEventListener("change", handleChange)
   );
 }
 
@@ -209,6 +215,7 @@ function updateStats() {
   const group = categorySelect.value;
   const items = checklistData[group];
   const values = [...form.querySelectorAll("input")].map(i => i.checked);
+  currentValues = values;
   const done = values.filter(v => v).length;
   const percent = Math.round((done / items.length) * 100);
   let rank = "Chưa xác định";
@@ -224,6 +231,20 @@ function updateStats() {
   rankSpan.textContent = rank;
 }
 
+function handleChange() {
+  undoStack.push([...currentValues]);
+  updateStats();
+}
+
+function undoChange() {
+  if (undoStack.length === 0) return;
+  const prev = undoStack.pop();
+  form.querySelectorAll("input").forEach((input, idx) => {
+    input.checked = prev[idx];
+  });
+  updateStats();
+}
+    
 async function saveProgress() {
   const date = selectedDate.value;
   const group = categorySelect.value;
