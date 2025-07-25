@@ -129,6 +129,18 @@ const moodBar = document.getElementById("moodBar");
 const auraBar = document.getElementById("auraBar");
 const milestoneShown = {};
 const STATS_KEY = "checklist_stats";
+const scoreEl = document.getElementById("scoreValue");
+let score = parseInt(localStorage.getItem("score") || "0");
+
+function updateScoreDisplay(){
+  if(scoreEl) scoreEl.textContent = score;
+}
+
+function changeScore(delta){
+  score = Math.max(0, score + delta);
+  localStorage.setItem("score", score);
+  updateScoreDisplay();
+}
 
 function saveStats(){
   localStorage.setItem(STATS_KEY, JSON.stringify(stats));
@@ -145,6 +157,7 @@ function loadStats(){
     }catch(e){/* ignore malformed data */}
   }
   updateBars();
+  updateScoreDisplay();
 }
 
 function appendStory(text, highlight = false){
@@ -360,14 +373,17 @@ function toggleItem(idx,item,label,cb){
     stats.energy = Math.min(100, stats.energy + val.energy);
     stats.mood = Math.min(100, stats.mood + val.mood);
     stats.aura = Math.min(100, stats.aura + val.aura);
+    changeScore(1);
     // Random story
-    fadeSnippet(storyBank[Math.floor(Math.random()*storyBank.length)]);
+    const story = storyBank[Math.floor(Math.random()*storyBank.length)];
+    fadeSnippet(`${story} (+1 điểm)`);  
   } else {
     // Nếu bỏ tick -> trừ nhẹ
     const val = checklistValues[item] || {energy:5, mood:5, aura:5};
     stats.energy=Math.max(0,stats.energy - val.energy);
     stats.mood=Math.max(0,stats.mood - val.mood);
     stats.aura=Math.max(0,stats.aura - val.aura);
+    changeScore(-1);
   }
   updateBars();
   checkMilestone();
@@ -589,11 +605,13 @@ function handleChange(e) {
     stats.energy = Math.min(100, stats.energy + val.energy);
     stats.mood = Math.min(100, stats.mood + val.mood);
     stats.aura = Math.min(100, stats.aura + val.aura);
-    fadeSnippet(storyBank[Math.floor(Math.random()*storyBank.length)]);
-  } else {
+    changeScore(1);
+    const story = storyBank[Math.floor(Math.random()*storyBank.length)];
+    fadeSnippet(`${story} (+1 điểm)`);  } else {
     stats.energy = Math.max(0, stats.energy - val.energy);
     stats.mood = Math.max(0, stats.mood - val.mood);
     stats.aura = Math.max(0, stats.aura - val.aura);
+    changeScore(-1);
   }
   updateStats();
   updateBars();
