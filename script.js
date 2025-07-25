@@ -257,62 +257,96 @@ const milestoneBank = [
   "Khí chất bạn mang hôm nay sẽ còn dư âm tới ngày mai.",
   "Một lớp mệt mỏi dày đã được gỡ bỏ."
 ];
-let milestoneShown = {};
+// ================== JS LOGIC ====================
 const stats = { energy: 50, mood: 50, aura: 50 };
+const groupSelect = document.getElementById('category');
+const checklistDiv = document.getElementById('checklist');
+const snippetDiv = document.getElementById('snippet');
+const modal = document.getElementById('milestoneModal');
+const milestoneText = document.getElementById('milestoneText');
+document.getElementById('closeModal').addEventListener('click',()=>modal.classList.add('hidden'));
 
-function loadStats(){
-  const saved = localStorage.getItem('simStats');
-  if(saved){
-    const s = JSON.parse(saved);
-    stats.energy = s.energy; stats.mood = s.mood; stats.aura = s.aura;
+// Cập nhật thanh trạng thái
+function updateBars(){
+  document.getElementById('energyBar').style.width = stats.energy + '%';
+  document.getElementById('moodBar').style.width = stats.mood + '%';
+  document.getElementById('auraBar').style.width = stats.aura + '%';
+}
+updateBars();
+
+let currentGroup='';
+let currentValues=[];
+
+// Khi chọn nhóm checklist
+groupSelect.addEventListener('change',()=>{
+  currentGroup=groupSelect.value;
+  loadChecklist();
+});
+
+// Load checklist cho nhóm
+function loadChecklist(){
+  checklistDiv.innerHTML='';
+  snippetDiv.textContent='';
+  if(!currentGroup) return;
+  const items=checklistData[currentGroup];
+  // lấy trạng thái từ localStorage
+  currentValues=JSON.parse(localStorage.getItem('progress_'+currentGroup)||'[]');
+  if(currentValues.length!==items.length) currentValues=items.map(()=>false);
+
+  items.forEach((item,idx)=>{
+    const label=document.createElement('label');
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=currentValues[idx];
+    if(cb.checked) label.classList.add('checked');
+    cb.addEventListener('change',()=>toggleItem(idx,item,label,cb));
+    label.appendChild(cb); label.append(' '+item);
+    checklistDiv.appendChild(label);
+  });
+}
+
+// Hiệu ứng story
+function fadeSnippet(text){
+  snippetDiv.style.opacity=0;
+  setTimeout(()=>{
+    snippetDiv.textContent=text;
+    snippetDiv.style.opacity=1;
+  },50);
+}
+
+// Toggle khi tick checklist
+function toggleItem(idx,item,label,cb){
+  currentValues[idx]=cb.checked;
+  label.classList.toggle('checked',cb.checked);
+  localStorage.setItem('progress_'+currentGroup, JSON.stringify(currentValues));
+
+  if(cb.checked){
+    // Lấy values cho item
+    const val = checklistValues[item] || {energy:5, mood:5, aura:5};
+    stats.energy = Math.min(100, stats.energy + val.energy);
+    stats.mood = Math.min(100, stats.mood + val.mood);
+    stats.aura = Math.min(100, stats.aura + val.aura);
+    // Random story
+    fadeSnippet(storyBank[Math.floor(Math.random()*storyBank.length)]);
+  } else {
+    // Nếu bỏ tick -> trừ nhẹ
+    const val = checklistValues[item] || {energy:5, mood:5, aura:5};
+    stats.energy=Math.max(0,stats.energy - val.energy);
+    stats.mood=Math.max(0,stats.mood - val.mood);
+    stats.aura=Math.max(0,stats.aura - val.aura);
   }
   updateBars();
+  checkMilestone();
 }
 
-function saveStats(){
-  localStorage.setItem('simStats', JSON.stringify(stats));
-}
-
-function updateBars(){
-  if(energyBar) energyBar.style.width = stats.energy + '%';
-  if(moodBar) moodBar.style.width = stats.mood + '%';
-  if(auraBar) auraBar.style.width = stats.aura + '%';
-}
-function fadeSnippet(text){
-  if(!snippetDiv) return;
-  snippetDiv.style.opacity = 0;
-  setTimeout(() => { snippetDiv.textContent = text; snippetDiv.style.opacity = 1; }, 50);
-}
-function showStory(){
-  const msg = storyBank[Math.floor(Math.random()*storyBank.length)];
-  appendStory(msg);
-}
-function appendStory(text, highlight=false, skipSave=false){
-  const p = document.createElement('p');
-  p.textContent = text;
-  if(highlight) p.style.backgroundColor = 'yellow';
-  storyMessages.appendChild(p);
-  if(!skipSave){
-    const key = `story_${selectedDate.value}_${currentGroup}`;
-    const log = JSON.parse(localStorage.getItem(key) || '[]');
-    log.push({text, highlight});
-    localStorage.setItem(key, JSON.stringify(log));
-  }
-}
-function loadStory(date, group){
-  storyMessages.innerHTML = '';
-  const key = `story_${date}_${group}`;
-  const log = JSON.parse(localStorage.getItem(key) || '[]');
-  log.forEach(entry => appendStory(entry.text, entry.highlight, true));
-  milestoneShown[key] = localStorage.getItem(`milestone_${date}_${group}`) === '1';
-}
+// Kiểm tra milestone (hoàn thành nhóm)
 function checkMilestone(){
-  if(!milestoneModal || !milestoneText) return;
-  if(currentValues.every(v => v)){
+  if(currentValues.every(v=>v)){
     milestoneText.textContent = milestoneBank[Math.floor(Math.random()*milestoneBank.length)];
-    milestoneModal.classList.remove('hidden');
+    modal.classList.remove('hidden');
   }
 }
+
 if (typeof Chart !== "undefined" && typeof ChartDataLabels !== "undefined") {
   Chart.register(ChartDataLabels);
 }
