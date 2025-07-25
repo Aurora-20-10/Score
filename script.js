@@ -127,6 +127,38 @@ if(closeModalBtn) closeModalBtn.addEventListener("click", () => milestoneModal.c
 const energyBar = document.getElementById("energyBar");
 const moodBar = document.getElementById("moodBar");
 const auraBar = document.getElementById("auraBar");
+const milestoneShown = {};
+const STATS_KEY = "checklist_stats";
+
+function saveStats(){
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+}
+
+function loadStats(){
+  const saved = localStorage.getItem(STATS_KEY);
+  if(saved){
+    try{
+      const obj = JSON.parse(saved);
+      if(typeof obj.energy === "number") stats.energy = obj.energy;
+      if(typeof obj.mood === "number") stats.mood = obj.mood;
+      if(typeof obj.aura === "number") stats.aura = obj.aura;
+    }catch(e){/* ignore malformed data */}
+  }
+  updateBars();
+}
+
+function appendStory(text, highlight = false){
+  if(!storyMessages) return;
+  const p = document.createElement('p');
+  if(highlight) p.style.fontWeight = 'bold';
+  p.textContent = text;
+  storyMessages.appendChild(p);
+}
+
+function showStory(){
+  const txt = snippetDiv.textContent.trim();
+  if(txt) appendStory(txt);
+}
 // === SIMULATION MODE ===
 const checklistValues = {
   "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)": {energy:10, mood:0, aura:0},
