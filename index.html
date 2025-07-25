@@ -77,13 +77,13 @@
   <label for="category">Chọn nhóm checklist:</label>
   <select id="category">
     <option value="">-- Chọn nhóm --</option>
-    <option value="chamCoThe">1. Chăm Cơ Thể</option>
-    <option value="chamNhaCua">2. Chăm Nhà Cửa</option>
-    <option value="dinhDuong">3. Dinh Dưỡng – Ẩm Thực</option>
-    <option value="langPhi">4. Kiểm Soát Lãng Phí</option>
-    <option value="aura">5. Nâng Tầng Aura</option>
-    <option value="soThich">6. Sở Thích – Dưỡng Khí</option>
-    <option value="theDuc">7. Thể Dục – Cơ Xương – Dáng Form</option>
+    <option value="chamCoThe">1. 🏋️ Chăm Cơ Thể</option>
+    <option value="chamNhaCua">2. 🏠 Chăm Nhà Cửa</option>
+    <option value="dinhDuong">3. 🍎 Dinh Dưỡng – Ẩm Thực</option>
+    <option value="langPhi">4. 💰 Kiểm Soát Lãng Phí</option>
+    <option value="aura">5. ✨ Nâng Tầng Aura</option>
+    <option value="soThich">6. 🎭 Sở Thích – Dưỡng Khí</option>
+    <option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
   </select>
   <input type="date" id="selected-date" />
   <button onclick="saveProgress()">Lưu kết quả</button>
@@ -91,6 +91,8 @@
   <button onclick="triggerImport()">Nhập dữ liệu</button>
   <input type="file" id="import-file" accept=".json" class="hidden" />
   <button onclick="undoChange()">Hoàn tác</button>
+
+  <h3 id="checklist-title"></h3>
 
   <form id="checklist-form"></form>
 
@@ -191,9 +193,30 @@ const checklistData = {
   ]
 };
 
+    const groupIcons = {
+  dinhDuong: "\ud83c\udf4e",
+  chamCoThe: "\ud83c\udfcb\ufe0f",
+  chamNhaCua: "\ud83c\udfe0",
+  langPhi: "\ud83d\udcb0",
+  aura: "\u2728",
+  soThich: "\ud83c\udfad",
+  theDuc: "\ud83c\udfc3"
+};
+
+const groupNames = {
+  chamCoThe: "Chăm Cơ Thể",
+  chamNhaCua: "Chăm Nhà Cửa",
+  dinhDuong: "Dinh Dưỡng – Ẩm Thực",
+  langPhi: "Kiểm Soát Lãng Phí",
+  aura: "Nâng Tầng Aura",
+  soThich: "Sở Thích – Dưỡng Khí",
+  theDuc: "Thể Dục – Cơ Xương – Dáng Form"
+};
+    
 const form = document.getElementById("checklist-form");
 const categorySelect = document.getElementById("category");
 const selectedDate = document.getElementById("selected-date");
+const titleEl = document.getElementById("checklist-title");
 const dateSpan = document.getElementById("date");
 const countSpan = document.getElementById("count");
 const totalSpan = document.getElementById("total");
@@ -223,7 +246,12 @@ async function loadChecklist() {
   form.innerHTML = "";
   const group = categorySelect.value;
   const date = selectedDate.value;
-  if (!group || !date) return;
+  if (!group || !date) {
+    if (titleEl) titleEl.textContent = "";
+    return;
+  }
+
+  if (titleEl) titleEl.textContent = `${groupIcons[group] || ""} ${groupNames[group] || ""}`;
 
   const items = checklistData[group];
   let values = getSavedData(date, group);
@@ -347,7 +375,7 @@ function updateRowColors() {
   const rows = historyTable.querySelectorAll("tr");
   let currentDate = null;
   let colorIndex = -1;
-  rows.forEach((row, index) => {
+  rows.forEach((row) => {
     const rowDate = row.children[0].textContent;
     if (rowDate !== currentDate) {
       colorIndex = (colorIndex + 1) % pastelColors.length;
