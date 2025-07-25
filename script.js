@@ -273,6 +273,10 @@ function updateBars(){
   if(moodBar) moodBar.style.width = stats.mood + '%';
   if(auraBar) auraBar.style.width = stats.aura + '%';
 }
+function showStory(){
+  const msg = storyBank[Math.floor(Math.random()*storyBank.length)];
+  appendStory(msg);
+}
 function appendStory(text, highlight=false, skipSave=false){
   const p = document.createElement('p');
   p.textContent = text;
@@ -509,8 +513,7 @@ function handleChange(e) {
   updateBars();
   saveStats();
   if(e.target.checked){
-    const msg = storyBank[Math.floor(Math.random()*storyBank.length)];
-    appendStory(msg);
+    showStory();
     const items = checklistData[currentGroup];
     const allChecked = form.querySelectorAll("input:checked").length === items.length;
     const key = `milestone_${selectedDate.value}_${currentGroup}`;
@@ -551,7 +554,6 @@ async function saveProgress() {
   }
   addToHistory(date, group, values);
   if (calendar) calendar.redraw();
-  alert("Đã lưu!");
   const groups = Array.from(categorySelect.selectedOptions)
     .map(o => o.value)
     .filter(v => v);
