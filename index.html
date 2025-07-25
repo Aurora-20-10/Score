@@ -200,8 +200,15 @@ const totalSpan = document.getElementById("total");
 const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
 const historyTable = document.getElementById("history-table").querySelector("tbody");
-const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"]; 
+const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"];
 
+function darkenColor(hex, amount) {
+  const num = parseInt(hex.slice(1), 16);
+  let r = Math.max(0, Math.min(255, Math.floor((num >> 16) * (1 - amount))));
+  let g = Math.max(0, Math.min(255, Math.floor(((num >> 8) & 0xff) * (1 - amount))));
+  let b = Math.max(0, Math.min(255, Math.floor((num & 0xff) * (1 - amount))));
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
 let currentValues = [];
 let undoStack = [];
 
@@ -347,14 +354,17 @@ function updateRowColors() {
   const rows = historyTable.querySelectorAll("tr");
   let currentDate = null;
   let colorIndex = -1;
-  rows.forEach(row => {
+  rows.forEach((row, index) => {
     const rowDate = row.children[0].textContent;
     if (rowDate !== currentDate) {
       colorIndex = (colorIndex + 1) % pastelColors.length;
       currentDate = rowDate;
     }
-    row.style.backgroundColor = pastelColors[colorIndex];
-  });
+    let color = pastelColors[colorIndex];
+    if (index === 0) {
+      color = darkenColor(color, 0.25);
+    }
+    row.style.backgroundColor = color;  });
 }
 function exportData() {
   if (!confirm("Xuất toàn bộ dữ liệu ra file?")) return;
