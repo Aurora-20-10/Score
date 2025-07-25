@@ -8,27 +8,44 @@
   <h2>Upload file của bạn</h2>
   <form id="uploadForm">
     <input type="file" id="fileInput" required>
+        <select id="endpoint">
+      <option value="1">Script 1</option>
+      <option value="2">Script 2</option>
+    </select>
     <button type="submit">Upload</button>
   </form>
   <div id="result"></div>
 
 <script>
+  const endpoints = {
+  1: {
+    url: 'https://script.google.com/macros/s/AKfycbx8LeuewSHKR4lnDKLJNZYN_hsIlAbpa_GKAIxHFP7ktpZdPM62xTHOL7gLVNw_zRL_Aw/exec',
+    message: 'Link của bạn'
+  },
+  2: {
+    url: 'https://script.google.com/macros/s/AKfycbyh-3IIS5NUnw_9dnOv8yBovkAcLICWGLSyNEui0cc1-N0FYoEPicK_nlVFUT0eWxcv/exec',
+    message: 'Link Drive'
+  }
+};
+
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const file = document.getElementById('fileInput').files[0];
   if (!file) return alert("Chọn file trước!");
 
+   const endpointKey = document.getElementById('endpoint').value;
+  const { url, message } = endpoints[endpointKey];
+
   const formData = new FormData();
   formData.append('file', file);
 
-  // API Google Apps Script
-  const res = await fetch('https://script.google.com/macros/s/AKfycbyh-3IIS5NUnw_9dnOv8yBovkAcLICWGLSyNEui0cc1-N0FYoEPicK_nlVFUT0eWxcv/exec', {
+  const res = await fetch(url, {
     method: 'POST',
     body: formData
   });
 
   const link = await res.text();
-  document.getElementById('result').innerHTML = `<p>Link Drive: <a href="${link}" target="_blank">${link}</a></p>`;
+  document.getElementById('result').innerHTML = `<p>${message}: <a href="${link}" target="_blank">${link}</a></p>`;
 });
 </script>
 </body>
