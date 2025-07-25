@@ -358,12 +358,13 @@ async function saveProgress() {
 
   const values = [...form.querySelectorAll("input")].map(i => i.checked);
   localStorage.setItem(`checklist_${date}_${group}`, JSON.stringify(values));
-  if (currentUser) {
+  if (typeof currentUser !== "undefined" && currentUser && typeof db !== "undefined") {
     await db.collection("users").doc(currentUser.uid)
       .collection("checklists").doc(`${date}_${group}`)
       .set({ values });
   }
   addToHistory(date, group, values);
+  if (calendar) calendar.redraw();
   alert("Đã lưu!");
 }
 
@@ -373,7 +374,7 @@ function getSavedData(date, group) {
 }
 
 async function getCloudData(date, group) {
-  if (!currentUser) return null;
+  if (typeof currentUser === "undefined" || !currentUser || typeof db === "undefined") return null;
   const docRef = db.collection("users").doc(currentUser.uid)
     .collection("checklists").doc(`${date}_${group}`);
   const snap = await docRef.get();
@@ -401,6 +402,7 @@ function addToHistory(date, group, values) {
 
   sortHistory();
   updateRowColors();
+  if (calendar) calendar.redraw();
 }
 
 function sortHistory() {
@@ -505,6 +507,9 @@ window.addEventListener("DOMContentLoaded", () => {
       if (status) dayElem.classList.add(status);
     }
   });
+  calendar.setDate(new Date());
+  selectedDate.value = calendar.input.value;
+  loadChecklist();
 });
 window.addEventListener("DOMContentLoaded", () => {
   loadLocalHistory();
