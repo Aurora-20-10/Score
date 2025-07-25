@@ -330,6 +330,7 @@ function addToHistory(date, group, values) {
   }
 
   sortHistory();
+    updateRowColors();
 }
 
 function sortHistory() {
@@ -405,7 +406,11 @@ document.getElementById("import-file").addEventListener("change", handleImport);
     
 // Load existing history entries on page load so the table reflects
 // all data previously saved in localStorage
-window.addEventListener("DOMContentLoaded", loadLocalHistory);
+window.addEventListener("DOMContentLoaded", () => {
+  loadLocalHistory();
+  updateRowColors();
+});
+});
   </script>
 </body>
 </html>
