@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Web Đánh Giá Checklist</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
     body {
     font-family: Arial, sans-serif;
@@ -73,6 +75,14 @@
     color: #2e7d32;
     animation: fade-in 0.3s;
   }
+      .flatpickr-day.complete {
+    background-color: #b2f2bb;
+    color: #000;
+  }
+  .flatpickr-day.incomplete {
+    background-color: #ffe6e6;
+    color: #000;
+  }
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -94,7 +104,7 @@
     <option value="soThich">6. 🎭 Sở Thích – Dưỡng Khí</option>
     <option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
   </select>
-  <input type="date" id="selected-date" />
+  <input type="text" id="selected-date" />
   <button onclick="saveProgress()">Lưu kết quả</button>
   <button onclick="exportData()">Xuất dữ liệu</button>
   <button onclick="triggerImport()">Nhập dữ liệu</button>
@@ -233,6 +243,7 @@ const totalSpan = document.getElementById("total");
 const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
 const motivationEl = document.getElementById("motivation");
+let calendar;
 const historyTable = document.getElementById("history-table").querySelector("tbody");
 const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"];
 
@@ -249,6 +260,7 @@ function loadLocalHistory() {
       const [, date, group] = key.split("_");
       const values = JSON.parse(localStorage.getItem(key));
       addToHistory(date, group, values);
+      if (calendar) calendar.redraw();
     }
   });
 }
@@ -453,9 +465,36 @@ function handleImport(event) {
 }
 
 document.getElementById("import-file").addEventListener("change", handleImport);
-    
-// Load existing history entries on page load so the table reflects
-// all data previously saved in localStorage
+function dayStatus(date) {
+  const groups = Object.keys(checklistData);
+  let hasAny = false;
+  let allComplete = true;
+  for (const g of groups) {
+    const vals = getSavedData(date, g);
+    if (vals) {
+      hasAny = true;
+      if (vals.filter(v => v).length < vals.length) {
+        allComplete = false;
+      }
+    }
+  }
+  if (!hasAny) return null;
+  return allComplete ? "complete" : "incomplete";
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  calendar = flatpickr("#selected-date", {
+    dateFormat: "Y-m-d",
+    onChange: (selectedDates, dateStr) => {
+      selectedDate.value = dateStr;
+      loadChecklist();
+    },
+    onDayCreate: (dObj, dStr, fp, dayElem) => {
+      const date = dayElem.dateObj.toISOString().split("T")[0];
+      const status = dayStatus(date);
+      if (status) dayElem.classList.add(status);
+    }
+  });
 window.addEventListener("DOMContentLoaded", () => {
   loadLocalHistory();
   updateRowColors();
