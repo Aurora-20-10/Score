@@ -649,7 +649,9 @@ function dayStatus(date) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  new Choices('#category', { removeItemButton: true, searchEnabled: true });
+  if (typeof Choices !== "undefined") {
+    new Choices('#category', { removeItemButton: true, searchEnabled: true });
+  }
   calendar = flatpickr("#datePicker", {
     dateFormat: "Y-m-d",
     onChange: (selectedDates, dateStr) => {
