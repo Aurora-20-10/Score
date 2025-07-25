@@ -1,0 +1,8 @@
+{
+  "name": "score",
+  "version": "1.0.0",
+  "description": "Checklist web app",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  }
+}
