@@ -785,8 +785,8 @@ window.addEventListener("DOMContentLoaded", () => {
       handleGroupChange();
     },
     onDayCreate: (dObj, dStr, fp, dayElem) => {
-      const date = dayElem.dateObj.toISOString().split("T")[0];
-      const status = dayStatus(date);
+      // Use flatpickr to format date in local timezone
+      const date = fp.formatDate(dayElem.dateObj, "Y-m-d");      const status = dayStatus(date);
       if (status) dayElem.classList.add(status);
     }
   });
