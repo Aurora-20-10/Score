@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <style>
     body {
     font-family: Arial, sans-serif;
@@ -84,6 +87,25 @@
     background-color: #ffe6e6;
     color: #000;
   }
+ #compareChart {
+    max-height: 300px;
+  }
+  .progress {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress div {
+    height: 100%;
+    background-color: #4caf50;
+    text-align: center;
+    color: #fff;
+    line-height: 20px;
+    font-weight: bold;
+  }
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -97,7 +119,7 @@
   <h2>Đánh Giá Checklist Cá Nhân</h2>
   <p><a href="lk.html">Đi tới trang Upload File</a></p>
   <label for="category">Chọn nhóm checklist:</label>
-  <select id="category" multiple size="7">
+  <select id="category" multiple>
     <option value="">-- Chọn nhóm --</option>
     <option value="chamCoThe">1. 🏋️ Chăm Cơ Thể</option>
     <option value="chamNhaCua">2. 🏠 Chăm Nhà Cửa</option>
@@ -108,6 +130,7 @@
     <option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
   </select>
   <canvas id="compareChart" class="hidden"></canvas>
+  <div id="progressContainer" class="progress hidden"><div id="progressBar"></div></div>
   <input type="text" id="selected-date" />
   <button onclick="saveProgress()">Lưu kết quả</button>
   <button onclick="triggerImport()">Nhập dữ liệu</button>
