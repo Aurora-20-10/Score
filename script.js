@@ -119,6 +119,9 @@ let compareChart;
 const progressContainer = document.getElementById("progressContainer");
 const progressBar = document.getElementById("progressBar");
 const storyMessages = document.getElementById("storyMessages");
+const energyBar = document.getElementById("energyBar");
+const moodBar = document.getElementById("moodBar");
+const auraBar = document.getElementById("auraBar");
 // === SIMULATION MODE ===
 const checklistValues = {
   "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)": { energy: 10, mood: 0, aura: 0 },
@@ -250,6 +253,26 @@ const milestoneBank = [
   "Một lớp mệt mỏi dày đã được gỡ bỏ."
 ];
 let milestoneShown = {};
+const stats = { energy: 50, mood: 50, aura: 50 };
+
+function loadStats(){
+  const saved = localStorage.getItem('simStats');
+  if(saved){
+    const s = JSON.parse(saved);
+    stats.energy = s.energy; stats.mood = s.mood; stats.aura = s.aura;
+  }
+  updateBars();
+}
+
+function saveStats(){
+  localStorage.setItem('simStats', JSON.stringify(stats));
+}
+
+function updateBars(){
+  if(energyBar) energyBar.style.width = stats.energy + '%';
+  if(moodBar) moodBar.style.width = stats.mood + '%';
+  if(auraBar) auraBar.style.width = stats.aura + '%';
+}
 function appendStory(text, highlight=false, skipSave=false){
   const p = document.createElement('p');
   p.textContent = text;
@@ -471,7 +494,20 @@ function handleChange(e) {
   const label = e.target.parentElement;
   label.classList.toggle("checked", e.target.checked);
   undoStack.push([...currentValues]);
+  const item = label.textContent.trim();
+  const val = checklistValues[item] || {energy:0, mood:0, aura:0};
+  if(e.target.checked){
+    stats.energy = Math.min(100, stats.energy + val.energy);
+    stats.mood = Math.min(100, stats.mood + val.mood);
+    stats.aura = Math.min(100, stats.aura + val.aura);
+  } else {
+    stats.energy = Math.max(0, stats.energy - val.energy);
+    stats.mood = Math.max(0, stats.mood - val.mood);
+    stats.aura = Math.max(0, stats.aura - val.aura);
+  }
   updateStats();
+  updateBars();
+  saveStats();
   if(e.target.checked){
     const msg = storyBank[Math.floor(Math.random()*storyBank.length)];
     appendStory(msg);
@@ -652,6 +688,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (typeof Choices !== "undefined") {
     new Choices('#category', { removeItemButton: true, searchEnabled: true });
   }
+  loadStats();
   calendar = flatpickr("#datePicker", {
     dateFormat: "Y-m-d",
     onChange: (selectedDates, dateStr) => {
