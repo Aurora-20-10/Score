@@ -101,7 +101,7 @@ const groupNames = {
     
 const form = document.getElementById("checklist-form");
 const categorySelect = document.getElementById("category");
-const selectedDate = document.getElementById("selected-date");
+const selectedDate = document.getElementById("datePicker");
 const titleEl = document.getElementById("checklist-title");
 const dateSpan = document.getElementById("date");
 const countSpan = document.getElementById("count");
@@ -485,7 +485,7 @@ function dayStatus(date) {
 
 window.addEventListener("DOMContentLoaded", () => {
   new Choices('#category', { removeItemButton: true, searchEnabled: true });
-  calendar = flatpickr("#selected-date", {
+  calendar = flatpickr("#datePicker", {
     dateFormat: "Y-m-d",
     onChange: (selectedDates, dateStr) => {
       selectedDate.value = dateStr;
