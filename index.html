@@ -269,6 +269,18 @@ function addToHistory(date, group, values) {
     row.innerHTML = `<td>${date}</td><td>${group}</td><td>${done}/${values.length}</td><td>${rank}</td>`;
     historyTable.appendChild(row);
   }
+
+  sortHistory();
+}
+
+function sortHistory() {
+  const rows = Array.from(historyTable.querySelectorAll("tr"));
+  rows.sort((a, b) => {
+    const dateA = new Date(a.children[0].textContent);
+    const dateB = new Date(b.children[0].textContent);
+    return dateB - dateA;
+  });
+  rows.forEach(row => historyTable.appendChild(row));
 }
   </script>
 </body>
