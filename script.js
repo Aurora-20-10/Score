@@ -116,6 +116,11 @@ const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"];
 
 const compareCanvas = document.getElementById("compareChart");
 let compareChart;
+const progressContainer = document.getElementById("progressContainer");
+const progressBar = document.getElementById("progressBar");
+if (typeof Chart !== "undefined" && typeof ChartDataLabels !== "undefined") {
+  Chart.register(ChartDataLabels);
+}
 let currentGroup = null;
 
 let currentValues = [];
@@ -149,8 +154,29 @@ function updateChart(groups) {
       compareChart = null;
     }
     compareCanvas.classList.add("hidden");
+    progressContainer.classList.add("hidden");
     return;
   }
+
+  if (groups.length === 1) {
+    if (compareChart) {
+      compareChart.destroy();
+      compareChart = null;
+    }
+    compareCanvas.classList.add("hidden");
+    
+    const g = groups[0];
+    const items = checklistData[g];
+    const values = getSavedData(selectedDate.value, g) || items.map(() => false);
+    const done = values.filter(v => v).length;
+    const percent = Math.round((done / items.length) * 100);
+    progressBar.style.width = percent + "%";
+    progressBar.textContent = percent + "%";
+    progressContainer.classList.remove("hidden");
+    return;
+  }
+
+  progressContainer.classList.add("hidden");
   const labels = [];
   const data = [];
   groups.forEach(g => {
@@ -163,6 +189,7 @@ function updateChart(groups) {
   });
   compareCanvas.classList.remove("hidden");
   if (!compareChart) {
+    compareCanvas.height = 300;
     compareChart = new Chart(compareCanvas, {
       type: "bar",
       data: {
@@ -174,14 +201,38 @@ function updateChart(groups) {
         }]
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
           y: { beginAtZero: true, max: 100 }
+        },
+        plugins: {
+          datalabels: {
+            anchor: 'end',
+            align: 'start',
+            color: '#fff',
+            font: { size: 14, weight: 'bold' },
+            formatter: v => v + '%'
+          }
         }
       }
     });
   } else {
     compareChart.data.labels = labels;
     compareChart.data.datasets[0].data = data;
+    if (compareChart.options.plugins && compareChart.options.plugins.datalabels) {
+      // keep same options
+    } else if (compareChart.options) {
+      compareChart.options.plugins = {
+        datalabels: {
+          anchor: 'end',
+          align: 'start',
+          color: '#fff',
+          font: { size: 14, weight: 'bold' },
+          formatter: v => v + '%'
+        }
+      };
+    }
     compareChart.update();
   }
 }
@@ -272,7 +323,7 @@ function handleChange(e) {
   const groups = Array.from(categorySelect.selectedOptions)
     .map(o => o.value)
     .filter(v => v);
-  if (groups.length > 1) updateChart(groups);
+  if (groups.length > 0) updateChart(groups);
 }
 
 function undoChange() {
@@ -303,7 +354,7 @@ async function saveProgress() {
   const groups = Array.from(categorySelect.selectedOptions)
     .map(o => o.value)
     .filter(v => v);
-  if (groups.length > 1) updateChart(groups);
+  if (groups.length > 0) updateChart(groups);
 }
 
 function getSavedData(date, group) {
@@ -433,6 +484,7 @@ function dayStatus(date) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  new Choices('#category', { removeItemButton: true, searchEnabled: true });
   calendar = flatpickr("#selected-date", {
     dateFormat: "Y-m-d",
     onChange: (selectedDates, dateStr) => {
