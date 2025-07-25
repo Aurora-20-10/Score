@@ -58,6 +58,10 @@
 #energyBar { background: #FFD700; }
 #moodBar { background: #4DB6E2; }
 #auraBar { background: #B388EB; }
+#scoreBox {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
 #storyBox { background:#f5f5f5; padding:10px; border-radius:8px; }
 #storyBox p { margin:4px 0; font-style:italic; }
 #snippet{margin-top:15px;font-style:italic;color:#555;min-height:20px;transition:opacity 0.4s;opacity:1;}
