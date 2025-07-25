@@ -109,7 +109,8 @@
     Ngày: <span id="date"></span><br>
     Đã hoàn thành: <span id="count">0</span>/<span id="total">0</span><br>
     Hoàn thành: <span id="percent">0%</span><br>
-    Xếp loại: <span id="rank">Chưa xác định</span>
+    Xếp loại: <span id="rank">Chưa xác định</span><br>
+    <div id="motivation"></div>
   </div>
 
   <h3>Lịch sử đánh giá</h3>
@@ -231,6 +232,7 @@ const countSpan = document.getElementById("count");
 const totalSpan = document.getElementById("total");
 const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
+const motivationEl = document.getElementById("motivation");
 const historyTable = document.getElementById("history-table").querySelector("tbody");
 const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"];
 
@@ -303,6 +305,11 @@ function updateStats() {
   totalSpan.textContent = items.length;
   percentSpan.textContent = percent + "%";
   rankSpan.textContent = rank;
+  let message = "";
+  if (percent < 50) message = "Bắt đầu ổn, cố thêm chút nữa!";
+  else if (percent < 100) message = "Tiến triển tốt! Gần xong rồi!";
+  else message = "🎉 Xuất sắc! Bạn hoàn thành tất cả mục hôm nay!";
+  motivationEl.textContent = message;
 }
 
 function handleChange(e) {
