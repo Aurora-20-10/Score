@@ -1,0 +1,29 @@
+.checklist-summary {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.checklist-summary div {
+  margin-bottom: 4px;
+}
+
+.grade.good {
+  color: #2e7d32;
+}
+.grade.average {
+  color: #f9a825;
+}
+.grade.poor {
+  color: #c62828;
+}
+
+.motivational {
+  background-color: #e0f7fa;
+  border-left: 4px solid #0288d1;
+  padding: 8px;
+  margin-top: 8px;
+}
