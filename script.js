@@ -268,10 +268,8 @@ const milestoneBank = [
 const stats = { energy: 50, mood: 50, aura: 50 };
 const groupSelect = document.getElementById('category');
 const checklistDiv = document.getElementById('checklist');
-const snippetDiv = document.getElementById('snippet');
-const modal = document.getElementById('milestoneModal');
-const milestoneText = document.getElementById('milestoneText');
-document.getElementById('closeModal').addEventListener('click',()=>modal.classList.add('hidden'));
+// snippetDiv, milestoneModal và milestoneText đã được khai báo ở phía trên
+// nên không cần lặp lại tại đây.
 
 // Cập nhật thanh trạng thái
 function updateBars(){
@@ -280,9 +278,6 @@ function updateBars(){
   document.getElementById('auraBar').style.width = stats.aura + '%';
 }
 updateBars();
-
-let currentGroup='';
-let currentValues=[];
 
 // Khi chọn nhóm checklist
 groupSelect.addEventListener('change',()=>{
@@ -350,7 +345,7 @@ function toggleItem(idx,item,label,cb){
 function checkMilestone(){
   if(currentValues.every(v=>v)){
     milestoneText.textContent = milestoneBank[Math.floor(Math.random()*milestoneBank.length)];
-    modal.classList.remove('hidden');
+    milestoneModal.classList.remove('hidden');
   }
 }
 
