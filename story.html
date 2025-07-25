@@ -1,0 +1,244 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a//dev/null b/story.html
+index 0000000000000000000000000000000000000000..ad7c9195020adde87b042af7c12ab0a324430765 100644
+--- a//dev/null
++++ b/story.html
+@@ -0,0 +1,235 @@
++<!DOCTYPE html>
++<html lang="vi">
++<head>
++<meta charset="UTF-8">
++<title>Checklist Story Mode</title>
++<style>
++body {font-family: Arial, sans-serif;background:#f5f8fa;padding:20px;}
++.bars {display:flex;gap:10px;margin-bottom:20px;}
++.bar{flex:1;background:#ddd;border-radius:6px;overflow:hidden;position:relative;height:20px;}
++.bar span{position:absolute;left:8px;top:0;font-size:12px;color:#000;line-height:20px;z-index:2;}
++.bar .fill{height:100%;width:50%;background:#4caf50;transition:width 0.3s;}
++#checklist label{display:block;margin:6px 0;cursor:pointer;}
++#checklist label.checked{background:#e0ffe0;}
++.snippet{margin-top:15px;font-style:italic;color:#555;min-height:20px;}
++</style>
++</head>
++<body>
++<div class="bars">
++  <div class="bar"><span>Energy ⚡</span><div class="fill" id="energyBar"></div></div>
++  <div class="bar"><span>Mood 😊</span><div class="fill" id="moodBar"></div></div>
++  <div class="bar"><span>Aura ✨</span><div class="fill" id="auraBar"></div></div>
++</div>
++<label>Nhóm:
++<select id="groupSelect">
++<option value="">--Chọn nhóm--</option>
++<option value="chamCoThe">1. 🏋️ Chăm Cơ Thể</option>
++<option value="chamNhaCua">2. 🏠 Chăm Nhà Cửa</option>
++<option value="dinhDuong">3. 🍎 Dinh Dưỡng – Ẩm Thực</option>
++<option value="langPhi">4. 💰 Kiểm Soát Lãng Phí</option>
++<option value="aura">5. ✨ Nâng Tầng Aura</option>
++<option value="soThich">6. 🎭 Sở Thích – Dưỡng Khí</option>
++<option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
++</select>
++</label>
++<div id="checklist"></div>
++<div id="snippet" class="snippet"></div>
++<script>
++(function(){
++const checklistData = {
++  chamCoThe: [
++    "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)",
++    "Rửa mặt sáng + tối",
++    "Thoa lotion body (cổ – vai – tay – chân)",
++    "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)",
++    "Đánh răng 2 lần/ngày",
++    "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài",
++    "Làm sạch môi – dưỡng môi",
++    "Tắm nước ấm buổi tối (xả stress, reset da)",
++    "Dưỡng da body tối (nếu không mệt)",
++    "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)"
++  ],
++  chamNhaCua: [
++    "Xếp chăn gọn sau khi ngủ dậy",
++    "Rửa chén bát trong ngày (không để tồn qua đêm)",
++    "Quét nhà hoặc lau chùi điểm bẩn rõ rệt",
++    "Không để đồ lung tung dưới đất",
++    "Dọn đồ trên bàn về đúng góc / vị trí",
++    "Đổ rác (tối)"
++  ],
++  dinhDuong: [
++    "1 cốc nước lọc ngay sau khi ngủ dậy",
++    "Uống nước 1.5–2L chia sáng/chiều/tối",
++    "2–3 bữa chính: đầy đủ carb tốt + đạm + rau",
++    "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix",
++    "1 bữa có rau xanh dạng lá (giúp tiêu hóa)",
++    "1–2 bữa có trái cây tươi",
++    "1 bữa có protein trắng (cá, gà, trứng)",
++    "Tránh để quá 6 tiếng không ăn",
++    "Không ăn khuya sau 9h tối (trừ khi tập nặng)"
++  ],
++  langPhi: [
++    "Hôm nay có bị rớt mode / tụt khí không? (Nếu có, tự xử chưa?)",
++    "Có để bản thân trì hoãn 2 tiếng liên tiếp không lý do?",
++    "Mạng xã hội / Tiktok hôm nay có tràn quá 30 phút không?",
++    "Có ngồi lướt kiểu vô thức quá 3 lần / ngày không?",
++    "Có bị kéo vào nhóm chat / bạn bè không thuộc vòng chiến lược?",
++    "Có để bản thân làm việc khi đã mệt / cạn pin không? (Nếu có, có nghỉ hồi pin chưa?)",
++    "Có ăn uống đúng khung để giữ nền năng lượng chưa?",
++    "Có bị cuốn vào những việc không có giá trị lâu dài? (Ví dụ: drama, thị phi, chuyện vô ích)",
++    "Có tiêu hao thời gian vì dọn dẹp / sắp xếp không dứt điểm?"
++  ],
++  aura: [
++    "Thở sâu, vươn người — mở lồng ngực 3–5 phút",
++    "Dành 10–15 phút ở một mình — không mạng, không nói",
++    "Dưỡng da cổ + vai (song song với dưỡng da mặt)",
++    "Ý thức: giữ mặt thả mềm, không cau — môi nhẹ tự nhiên",
++    "Nhìn gương 2 phút/ngày: mắt tỉnh — không gồng",
++    "Giọng nói: giữ đều, mềm, không cộc",
++    "Ăn uống chậm rãi — không nuốt vội",
++    "Nghe nhạc tầng cao (nhạc chill – nhạc nền Fantasy – Nature Sound)"
++  ],
++  soThich: [
++    "Xem múa cổ trang hoặc múa võ (10–30’)",
++    "Nghe nhạc cụ / sáo / đàn (10–40’)",
++    "Thưởng mùi thơm tự nhiên (tinh dầu / hoa / rượu trái cây)",
++    "Ngắm 1 hình mỹ nhân khí mềm hoặc khí tỉnh (5–10’)",
++    "Vẽ tranh / mặc đẹp / ngồi tĩnh giữa không gian đẹp (15–30’)",
++    "Uống nước ép / rượu trái cây (100–200ml)",
++    "Luyện giọng ấm (5–10 phút, buổi sáng hoặc tối)",
++    "Đọc truyện / bài phân tích sâu (30–60’)",
++    "Thu thập 1–3 mẫu / content mới để nạp pattern (15–30’)",
++    "Nghe / đọc tài chính – dòng tiền (15–45’)",
++    "Làm 1 lần “data hóa” – sơ đồ – hệ hóa 1 chủ đề đang học (tối đa 45’)",
++    "Quan sát 1 nhân vật / case người trong ngày → phân tích khí tầng",
++    "Vận động nhẹ / bơi / đi bộ / vươn căng 10–20 phút",
++    "Ăn 1 bữa ngon có tỉnh khí",
++    "Uống đủ nước ấm — không uống lạnh sau 21h",
++    "Tránh gió – lạnh – âm khí trực tiếp khi mệt"
++  ],
++  theDuc: [
++    "Kéo giãn nhẹ sau khi ngủ dậy (5 phút)",
++    "Đi bộ hoặc di chuyển cơ thể 15–30 phút (tránh ngồi lì)",
++    "Vươn vai, xoay cổ, gập người 2 lần/ngày (sáng – tối)",
++    "Giữ thẳng cột sống khi ngồi học/làm (ý thức chỉnh)",
++    "Xoa bụng theo chiều kim đồng hồ sau ăn (1 phút)",
++    "Nhẹ nhàng bóp chân – cổ chân trước khi ngủ"
++  ]
++};
++
++const storySnippets = {
++  chamCoThe: ["Giọt nước ấm trượt xuống, cơ thể như thở được.", "Làn da như được đánh thức."],
++  chamNhaCua: ["Góc phòng sáng hơn khi đồ vật nằm đúng chỗ."],
++  dinhDuong: ["Cơ thể được nạp năng lượng tươi mới."],
++  langPhi: ["Bạn nhận ra thời gian quý giá hơn."],
++  aura: ["Không gian quanh bạn như lấp lánh hơn."],
++  soThich: ["Tâm trí thư thái khi làm điều mình thích."],
++  theDuc: ["Máu huyết lưu thông khắp cơ thể."]
++};
++
++const milestoneSnippets = {
++  chamCoThe: "Cơ thể này như vừa được reset – sạch, ấm, sẵn sàng.",
++  chamNhaCua: "Căn phòng không còn là nơi bạn ở – mà là nơi bạn thuộc về.",
++  dinhDuong: "Năng lượng tràn đầy từ những bữa ăn lành mạnh.",
++  langPhi: "Bạn đã kiểm soát tốt nguồn năng lượng của mình.",
++  aura: "Khí chất toả ra nhẹ nhàng quanh bạn.",
++  soThich: "Nguồn cảm hứng dồi dào lan toả.",
++  theDuc: "Cơ thể dẻo dai và linh hoạt hơn."
++};
++
++const stats = { energy: 50, mood: 50, aura: 50 };
++
++function loadStats(){
++  const saved = localStorage.getItem('simStats');
++  if(saved){
++    const s = JSON.parse(saved);
++    stats.energy = s.energy; stats.mood = s.mood; stats.aura = s.aura;
++  }
++  updateBars();
++}
++
++function saveStats(){
++  localStorage.setItem('simStats', JSON.stringify(stats));
++}
++
++function updateBars(){
++  document.getElementById('energyBar').style.width = stats.energy + '%';
++  document.getElementById('moodBar').style.width = stats.mood + '%';
++  document.getElementById('auraBar').style.width = stats.aura + '%';
++}
++
++const checklistValues = {};
++Object.keys(checklistData).forEach(g=>{
++  checklistData[g].forEach(item=>{
++    const t = item.toLowerCase();
++    const val = {energy:0,mood:0,aura:0};
++    if(/tắm|uống|đi bộ|bơi|kéo|vươn|gập|tập/.test(t)) val.energy += 10;
++    else if(/dưỡng|chải|rửa|đánh răng|xoa|thoa/.test(t)) val.energy += 5;
++    else if(/đổ rác|quét|dọn/.test(t)) val.energy -= 5;
++    if(g==='aura') val.aura += 5;
++    if(g==='soThich') val.mood += 5;
++    checklistValues[item] = val;
++  });
++});
++
++const groupSelect = document.getElementById('groupSelect');
++const checklistDiv = document.getElementById('checklist');
++const snippetDiv = document.getElementById('snippet');
++let currentGroup = '';
++let currentValues = [];
++
++groupSelect.addEventListener('change', ()=>{
++  currentGroup = groupSelect.value;
++  loadChecklist();
++});
++
++function loadChecklist(){
++  checklistDiv.innerHTML='';
++  snippetDiv.textContent='';
++  if(!currentGroup) return;
++  const items = checklistData[currentGroup];
++  currentValues = JSON.parse(localStorage.getItem('progress_'+currentGroup)||'[]');
++  if(currentValues.length!==items.length) currentValues = items.map(()=>false);
++  items.forEach((item,idx)=>{
++    const label=document.createElement('label');
++    const cb=document.createElement('input');
++    cb.type='checkbox';
++    cb.checked=currentValues[idx];
++    if(cb.checked) label.classList.add('checked');
++    cb.addEventListener('change',()=>toggleItem(idx,item,label,cb));
++    label.appendChild(cb); label.append(' '+item);
++    checklistDiv.appendChild(label);
++  });
++}
++
++function toggleItem(idx,item,label,cb){
++  currentValues[idx]=cb.checked;
++  label.classList.toggle('checked',cb.checked);
++  localStorage.setItem('progress_'+currentGroup, JSON.stringify(currentValues));
++  const val=checklistValues[item];
++  if(cb.checked){
++    stats.energy = Math.min(100, stats.energy + val.energy);
++    stats.mood = Math.min(100, stats.mood + val.mood);
++    stats.aura = Math.min(100, stats.aura + val.aura);
++    snippetDiv.textContent = storySnippets[currentGroup][Math.floor(Math.random()*storySnippets[currentGroup].length)] || '';
++  }else{
++    stats.energy = Math.max(0, stats.energy - val.energy);
++    stats.mood = Math.max(0, stats.mood - val.mood);
++    stats.aura = Math.max(0, stats.aura - val.aura);
++  }
++  saveStats();
++  updateBars();
++  checkMilestone();
++}
++
++function checkMilestone(){
++  if(currentValues.every(v=>v)){
++    alert(milestoneSnippets[currentGroup]);
++  }
++}
++
++loadStats();
++})();
++</script>
++</body>
++</html>
+ 
+EOF
+)

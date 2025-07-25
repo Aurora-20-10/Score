@@ -1,8 +1,0 @@
-body {font-family: Arial, sans-serif;background:#f5f8fa;padding:20px;}
-.bars {display:flex;gap:10px;margin-bottom:20px;}
-.bar{flex:1;background:#ddd;border-radius:6px;overflow:hidden;position:relative;height:20px;}
-.bar span{position:absolute;left:8px;top:0;font-size:12px;color:#000;line-height:20px;z-index:2;}
-.bar .fill{height:100%;width:50%;background:#4caf50;transition:width 0.3s;}
-#checklist label{display:block;margin:6px 0;cursor:pointer;}
-#checklist label.checked{background:#e0ffe0;}
-.snippet{margin-top:15px;font-style:italic;color:#555;min-height:20px;}
