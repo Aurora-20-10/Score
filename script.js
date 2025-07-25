@@ -119,6 +119,11 @@ let compareChart;
 const progressContainer = document.getElementById("progressContainer");
 const progressBar = document.getElementById("progressBar");
 const storyMessages = document.getElementById("storyMessages");
+const snippetDiv = document.getElementById("snippet");
+const milestoneModal = document.getElementById("milestoneModal");
+const milestoneText = document.getElementById("milestoneText");
+const closeModalBtn = document.getElementById("closeModal");
+if(closeModalBtn) closeModalBtn.addEventListener("click", () => milestoneModal.classList.add("hidden"));
 const energyBar = document.getElementById("energyBar");
 const moodBar = document.getElementById("moodBar");
 const auraBar = document.getElementById("auraBar");
@@ -273,6 +278,11 @@ function updateBars(){
   if(moodBar) moodBar.style.width = stats.mood + '%';
   if(auraBar) auraBar.style.width = stats.aura + '%';
 }
+function fadeSnippet(text){
+  if(!snippetDiv) return;
+  snippetDiv.style.opacity = 0;
+  setTimeout(() => { snippetDiv.textContent = text; snippetDiv.style.opacity = 1; }, 50);
+}
 function showStory(){
   const msg = storyBank[Math.floor(Math.random()*storyBank.length)];
   appendStory(msg);
@@ -295,6 +305,13 @@ function loadStory(date, group){
   const log = JSON.parse(localStorage.getItem(key) || '[]');
   log.forEach(entry => appendStory(entry.text, entry.highlight, true));
   milestoneShown[key] = localStorage.getItem(`milestone_${date}_${group}`) === '1';
+}
+function checkMilestone(){
+  if(!milestoneModal || !milestoneText) return;
+  if(currentValues.every(v => v)){
+    milestoneText.textContent = milestoneBank[Math.floor(Math.random()*milestoneBank.length)];
+    milestoneModal.classList.remove('hidden');
+  }
 }
 if (typeof Chart !== "undefined" && typeof ChartDataLabels !== "undefined") {
   Chart.register(ChartDataLabels);
@@ -504,6 +521,7 @@ function handleChange(e) {
     stats.energy = Math.min(100, stats.energy + val.energy);
     stats.mood = Math.min(100, stats.mood + val.mood);
     stats.aura = Math.min(100, stats.aura + val.aura);
+    fadeSnippet(storyBank[Math.floor(Math.random()*storyBank.length)]);
   } else {
     stats.energy = Math.max(0, stats.energy - val.energy);
     stats.mood = Math.max(0, stats.mood - val.mood);
@@ -522,7 +540,8 @@ function handleChange(e) {
       appendStory(mile, true);
       localStorage.setItem(key, "1");
       milestoneShown[`story_${selectedDate.value}_${currentGroup}`]=true;
-    }
+  }
+    checkMilestone();
   }
   const groups = Array.from(categorySelect.selectedOptions)
     .map(o => o.value)
