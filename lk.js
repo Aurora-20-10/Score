@@ -1,6 +1,5 @@
-<script>
 document.addEventListener("DOMContentLoaded", () => {
-  const sheetID = "13c3ViHrJp3FQhqk7tEY0popCBXtEPa8dTsT-S9DN05c/edit?gid=0#gid=0";
+  const sheetID = "13c3ViHrJp3FQhqk7tEY0popCBXtEPa8dTsT-S9DN05c";
   const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
 
   fetch(url)
