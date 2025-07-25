@@ -37,10 +37,27 @@
     display: block;
     margin: 8px 0;
   }
-  select, button, input[type="date"] {
+  select, button, #datePicker {
     padding: 8px 12px;
     font-size: 16px;
     margin-bottom: 10px;
+  }
+
+     #datePicker {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E");
+  }
+
+  #datePicker:hover,
+  #datePicker:focus {
+    border-color: #4CAFEF;
+    outline: none;
   }
   button {
     background-color: #4caf50;
