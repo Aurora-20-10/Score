@@ -28,5 +28,35 @@
   margin-top: 8px;
 }
 
+.bars {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.bar {
+  flex: 1;
+  background: #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  height: 20px;
+}
+.bar span {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  font-size: 12px;
+  color: #000;
+  line-height: 20px;
+  z-index: 2;
+}
+.bar .fill {
+  height: 100%;
+  width: 50%;
+  transition: width 0.3s;
+}
+#energyBar { background: #FFD700; }
+#moodBar { background: #4DB6E2; }
+#auraBar { background: #B388EB; }
 #storyBox { background:#f5f5f5; padding:10px; border-radius:8px; }
 #storyBox p { margin:4px 0; font-style:italic; }
