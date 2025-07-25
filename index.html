@@ -200,16 +200,6 @@ async function loadChecklist() {
   );
 }
 
- if (currentUser) {
-    const cloud = await getCloudData(date, group);
-    if (cloud) {
-      form.querySelectorAll("input").forEach((input, idx) => {
-        input.checked = cloud[idx];
-      });
-      updateStats();
-    }
-  }
-    
 function updateStats() {
   const date = selectedDate.value;
   const group = categorySelect.value;
