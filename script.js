@@ -298,9 +298,8 @@ function updateStats() {
   dateSpan.textContent = date;
   countSpan.textContent = done;
   totalSpan.textContent = items.length;
-  if (percentSpan) {
-    percentSpan.textContent = percent + "%";
-  }  rankSpan.textContent = rank;
+  percentSpan.textContent = percent + "%";
+  rankSpan.textContent = rank;
     rankSpan.classList.remove("good", "average", "poor");
   if (rank === "Tốt" || rank === "Xuất sắc") {
     rankSpan.classList.add("good");
