@@ -88,6 +88,8 @@
     to { opacity: 1; }
   }
 </style>
+  <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
     <div class="container">
@@ -115,12 +117,12 @@
 
   <form id="checklist-form"></form>
 
-  <div class="result">
-    Ngày: <span id="date"></span><br>
-    Đã hoàn thành: <span id="count">0</span>/<span id="total">0</span><br>
-    Hoàn thành: <span id="percent">0%</span><br>
-    Xếp loại: <span id="rank">Chưa xác định</span><br>
-    <div id="motivation"></div>
+  <div class="result checklist-summary">
+    <div><strong>Ngày:</strong> <span id="date"></span></div>
+    <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
+    <div><strong>Hoàn thành %:</strong> <span id="percent">0%</span></div>
+    <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div>
+    <p id="motivation" class="motivational"></p>
   </div>
 
   <h3>Lịch sử đánh giá</h3>
@@ -317,6 +319,14 @@ function updateStats() {
   totalSpan.textContent = items.length;
   percentSpan.textContent = percent + "%";
   rankSpan.textContent = rank;
+    rankSpan.classList.remove("good", "average", "poor");
+  if (rank === "Tốt" || rank === "Xuất sắc") {
+    rankSpan.classList.add("good");
+  } else if (rank === "Trung bình") {
+    rankSpan.classList.add("average");
+  } else if (rank === "Cần cải thiện") {
+    rankSpan.classList.add("poor");
+  }
   let message = "";
   if (percent < 50) message = "Bắt đầu ổn, cố thêm chút nữa!";
   else if (percent < 100) message = "Tiến triển tốt! Gần xong rồi!";
