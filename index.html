@@ -4,18 +4,72 @@
   <meta charset="UTF-8">
   <title>Web Đánh Giá Checklist</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: auto; }
-    h2 { color: #333; }
-    label { display: block; margin: 5px 0; }
-    .result { margin-top: 20px; font-size: 18px; font-weight: bold; }
-    .hidden { display: none; }
-    select, button { padding: 5px; font-size: 16px; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
-    th { background-color: #f0f0f0; }
-  </style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f8fa;
+    margin: 0;
+    padding: 30px;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  h2, h3 {
+    color: #333;
+    margin-top: 0;
+  }
+  label {
+    display: block;
+    margin: 8px 0;
+  }
+  select, button, input[type="date"] {
+    padding: 8px 12px;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  button {
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:hover {
+    background-color: #43a047;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #e8f5e9;
+  }
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  .result {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .hidden {
+    display: none;
+  }
+</style>
 </head>
 <body>
+    <div class="container">
   <h2>Đánh Giá Checklist Cá Nhân</h2>
   
   <label for="category">Chọn nhóm checklist:</label>
@@ -52,7 +106,7 @@
     </thead>
     <tbody></tbody>
   </table>
-
+</div>
   <script>
 const checklistData = {
   chamCoThe: [
