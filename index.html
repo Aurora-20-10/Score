@@ -216,16 +216,6 @@ function loadLocalHistory() {
   });
 }
 
-async function loadHistoryFromCloud() {
-  loadLocalHistory();
-  if (!currentUser) return;
-  const snap = await db.collection("users").doc(currentUser.uid).collection("checklists").get();
-  snap.forEach(doc => {
-    const [date, group] = doc.id.split("_");
-    addToHistory(date, group, doc.data().values);
-  });
-}
-
 async function loadChecklist() {
   form.innerHTML = "";
   const group = categorySelect.value;
