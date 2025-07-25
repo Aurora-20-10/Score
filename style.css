@@ -27,3 +27,6 @@
   padding: 8px;
   margin-top: 8px;
 }
+
+#storyBox { background:#f5f5f5; padding:10px; border-radius:8px; }
+#storyBox p { margin:4px 0; font-style:italic; }
