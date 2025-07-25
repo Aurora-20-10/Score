@@ -384,7 +384,10 @@ function handleImport(event) {
   event.target.value = "";
 }
 
-document.getElementById("import-file").addEventListener("change", handleImport);
+document.getElementById("import-file").addEventListener("change", handleImport);4
+// Load existing history entries on page load so the table reflects
+// all data previously saved in localStorage
+window.addEventListener("DOMContentLoaded", loadLocalHistory);
   </script>
 </body>
 </html>
