@@ -17,11 +17,6 @@
 </head>
 <body>
   <h2>Đánh Giá Checklist Cá Nhân</h2>
-
-  <div>
-    <button id="login-btn">Đăng nhập bằng Google</button>
-    <span id="user-info"></span>
-  </div>
   
   <label for="category">Chọn nhóm checklist:</label>
   <select id="category">
@@ -54,10 +49,6 @@
     <tbody></tbody>
   </table>
 
-   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  
   <script>
 const checklistData = {
   chamCoThe: [
@@ -149,39 +140,7 @@ const totalSpan = document.getElementById("total");
 const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
 const historyTable = document.getElementById("history-table").querySelector("tbody");
-const loginBtn = document.getElementById("login-btn");
-const userInfo = document.getElementById("user-info");
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-let currentUser = null;
-
-loginBtn.addEventListener("click", () => {
-  if (currentUser) {
-    auth.signOut();
-  } else {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-  }
-});
-
-auth.onAuthStateChanged(async user => {
-  currentUser = user;
-  if (user) {
-    loginBtn.textContent = "Đăng xuất";
-    userInfo.textContent = user.displayName || user.email;
-    await loadHistoryFromCloud();
-  } else {
-    loginBtn.textContent = "Đăng nhập bằng Google";
-    userInfo.textContent = "";
-    loadLocalHistory();
   }
 }); 
 categorySelect.addEventListener("change", loadChecklist);
