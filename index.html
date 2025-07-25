@@ -68,6 +68,15 @@
   .hidden {
     display: none;
   }
+  label.checked {
+    background-color: #e0ffe0;
+    color: #2e7d32;
+    animation: fade-in 0.3s;
+  }
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -263,6 +272,7 @@ async function loadChecklist() {
     checkbox.type = "checkbox";
     checkbox.name = `check-${index}`;
     checkbox.checked = currentValues[index];
+    if (checkbox.checked) label.classList.add("checked");
     label.appendChild(checkbox);
     label.append(` ${item}`);
     form.appendChild(label);
@@ -295,7 +305,9 @@ function updateStats() {
   rankSpan.textContent = rank;
 }
 
-function handleChange() {
+function handleChange(e) {
+  const label = e.target.parentElement;
+  label.classList.toggle("checked", e.target.checked);
   undoStack.push([...currentValues]);
   updateStats();
 }
@@ -305,6 +317,7 @@ function undoChange() {
   const prev = undoStack.pop();
   form.querySelectorAll("input").forEach((input, idx) => {
     input.checked = prev[idx];
+    input.parentElement.classList.toggle("checked", input.checked);
   });
   updateStats();
 }
