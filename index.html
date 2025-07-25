@@ -108,7 +108,6 @@
   </select>
   <input type="text" id="selected-date" />
   <button onclick="saveProgress()">Lưu kết quả</button>
-  <button onclick="exportData()">Xuất dữ liệu</button>
   <button onclick="triggerImport()">Nhập dữ liệu</button>
   <input type="file" id="import-file" accept=".json" class="hidden" />
   <button onclick="undoChange()">Hoàn tác</button>
@@ -132,6 +131,7 @@
     </thead>
     <tbody></tbody>
   </table>
+  <button onclick="exportData()">Xuất dữ liệu</button>
 </div>
   <script>
 const checklistData = {
