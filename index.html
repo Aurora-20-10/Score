@@ -106,6 +106,41 @@
     line-height: 20px;
     font-weight: bold;
   }
+      .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .date-picker {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+  .date-picker:hover,
+  .date-picker:focus {
+    border-color: #4CAFEF;
+    outline: none;
+  }
+  .action-btn {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    margin-right: 8px;
+  }
+  .action-btn:hover {
+    background-color: #43A047;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .actions .action-btn:last-child {
+    margin-right: 0;
+  }
+    
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -132,6 +167,13 @@
   </select>
   <canvas id="compareChart" class="hidden"></canvas>
   <div id="progressContainer" class="progress hidden"><div id="progressBar"></div></div>
+  <div class="actions">
+    <input type="text" id="selected-date" class="date-picker" />
+    <button class="action-btn" onclick="saveProgress()">Lưu kết quả</button>
+    <button class="action-btn" onclick="triggerImport()">Nhập dữ liệu</button>
+    <input type="file" id="import-file" accept=".json" class="hidden" />
+    <button class="action-btn" onclick="undoChange()">Hoàn tác</button>
+  </div>
   <input type="text" id="selected-date" />
   <button onclick="saveProgress()">Lưu kết quả</button>
   <button onclick="triggerImport()">Nhập dữ liệu</button>
