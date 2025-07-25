@@ -60,9 +60,6 @@
   th {
     background-color: #e8f5e9;
   }
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
   .result {
     margin-top: 20px;
     font-size: 18px;
@@ -203,6 +200,7 @@ const totalSpan = document.getElementById("total");
 const percentSpan = document.getElementById("percent");
 const rankSpan = document.getElementById("rank");
 const historyTable = document.getElementById("history-table").querySelector("tbody");
+const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"]; 
 
 let currentValues = [];
 let undoStack = [];
@@ -342,6 +340,20 @@ function sortHistory() {
     return dateB - dateA;
   });
   rows.forEach(row => historyTable.appendChild(row));
+}
+
+function updateRowColors() {
+  const rows = historyTable.querySelectorAll("tr");
+  let currentDate = null;
+  let colorIndex = -1;
+  rows.forEach(row => {
+    const rowDate = row.children[0].textContent;
+    if (rowDate !== currentDate) {
+      colorIndex = (colorIndex + 1) % pastelColors.length;
+      currentDate = rowDate;
+    }
+    row.style.backgroundColor = pastelColors[colorIndex];
+  });
 }
 function exportData() {
   if (!confirm("Xuất toàn bộ dữ liệu ra file?")) return;
