@@ -360,6 +360,11 @@ function updateRowColors() {
     if (rowDate !== currentDate) {
       colorIndex = (colorIndex + 1) % pastelColors.length;
       currentDate = rowDate;
+    let color = pastelColors[colorIndex];
+    if (index === 0) {
+      color = darkenColor(color, 0.25);
+    }
+    row.style.backgroundColor = color;
     }
 }
 function exportData() {
