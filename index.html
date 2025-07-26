@@ -322,18 +322,6 @@ body {font-family: Arial, sans-serif;background:#f5f8fa;padding:20px;}
   <div class="bar"><span>Mood 😊</span><div class="fill" id="moodBar"></div></div>
   <div class="bar"><span>Aura ✨</span><div class="fill" id="auraBar"></div></div>
 </div>
-<label>Nhóm:
-<select id="groupSelect">
-<option value="">--Chọn nhóm--</option>
-<option value="chamCoThe">1. 🏋️ Chăm Cơ Thể</option>
-<option value="chamNhaCua">2. 🏠 Chăm Nhà Cửa</option>
-<option value="dinhDuong">3. 🍎 Dinh Dưỡng – Ẩm Thực</option>
-<option value="langPhi">4. 💰 Kiểm Soát Lãng Phí</option>
-<option value="aura">5. ✨ Nâng Tầng Aura</option>
-<option value="soThich">6. 🎭 Sở Thích – Dưỡng Khí</option>
-<option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
-</select>
-</label>
 <div id="checklist"></div>
 <div id="snippet" class="snippet"></div>
 <div id="milestoneModal" class="modal hidden">
@@ -559,7 +547,7 @@ const milestoneBank = [
 
 const stats = { energy: 50, mood: 50, aura: 50 };
 
-const groupSelect = document.getElementById('groupSelect');
+const categorySelect = document.getElementById('category');
 const checklistDiv = document.getElementById('checklist');
 const snippetDiv = document.getElementById('snippet');
 const modal = document.getElementById('milestoneModal');
@@ -589,8 +577,8 @@ function updateBars(){
 let currentGroup='';
 let currentValues=[];
 
-groupSelect.addEventListener('change',()=>{
-  currentGroup=groupSelect.value;
+categorySelect.addEventListener('change',()=>{
+  currentGroup=categorySelect.value;
   loadChecklist();
 });
 
