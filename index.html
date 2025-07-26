@@ -313,14 +313,6 @@ body {font-family: Arial, sans-serif;background:#f5f8fa;padding:20px;}
       <div id="storyMessages"></div>
     </div>
   </div>
-      
-<h3>📖 Thành tựu</h3>
-  <table id="history-table">
-    <thead>
-      <tr><th>Ngày</th><th>Nhóm</th><th>Hoàn thành</th><th>Xếp loại</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 </div>
   <script src="script.js"></script>
 
@@ -772,7 +764,8 @@ const rankSpan = document.getElementById("rank");
 const motivationEl = document.getElementById("motivation");
 const summaryEl = document.querySelector(".checklist-summary");
 let calendar;
-const historyTable = document.getElementById("history-table").querySelector("tbody");
+const historyTableEl = document.getElementById("history-table");
+const historyTable = historyTableEl ? historyTableEl.querySelector("tbody") : null;
 const pastelColors = ["#f9f9ff", "#e8f6ff", "#fff7e6", "#e8ffe8", "#ffe6f2"];
 
 const compareCanvas = document.getElementById("compareChart");
@@ -1094,6 +1087,7 @@ function updateChart(groups) {
 }
 
 function loadLocalHistory() {
+  if (!historyTable) return;
   historyTable.innerHTML = "";
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith("checklist_")) {
@@ -1254,6 +1248,7 @@ async function getCloudData(date, group) {
 }
     
 function addToHistory(date, group, values) {
+  if (!historyTable) return;
   const existingRow = historyTable.querySelector(`tr[data-id="${date}_${group}"]`);
   const done = values.filter(v => v).length;
   const percent = Math.round((done / values.length) * 100);
@@ -1278,6 +1273,7 @@ function addToHistory(date, group, values) {
 }
 
 function sortHistory() {
+  if (!historyTable) return;
   const rows = Array.from(historyTable.querySelectorAll("tr"));
   rows.sort((a, b) => {
     const dateA = new Date(a.children[0].textContent);
@@ -1288,6 +1284,7 @@ function sortHistory() {
 }
 
 function updateRowColors() {
+  if (!historyTable) return;
   const rows = historyTable.querySelectorAll("tr");
   let currentDate = null;
   let colorIndex = -1;
