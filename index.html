@@ -309,28 +309,10 @@ body {font-family: Arial, sans-serif;background:#f5f8fa;padding:20px;}
       <div class="icon">🎉</div>
       <p id="milestoneText"></p>
       <button id="closeModal">Đóng</button>
-      <div id="storyMessages"></div>
     </div>
   </div>
 </div>
   <script src="script.js"></script>
-
-<!-- Story.html body content -->
-
-<div class="bars">
-  <div class="bar"><span>Energy ⚡</span><div class="fill" id="energyBar"></div></div>
-  <div class="bar"><span>Mood 😊</span><div class="fill" id="moodBar"></div></div>
-  <div class="bar"><span>Aura ✨</span><div class="fill" id="auraBar"></div></div>
-</div>
-<div id="checklist"></div>
-<div id="snippet" class="snippet"></div>
-<div id="milestoneModal" class="modal hidden">
-  <div class="modal-content">
-    <div class="icon">🎉</div>
-    <p id="milestoneText"></p>
-    <button id="closeModal">Đóng</button>
-  </div>
-</div>
 <script>
 (function(){
 const checklistData = {
@@ -1369,11 +1351,9 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   calendar.setDate(new Date());
   selectedDate.value = calendar.input.value;
-  handleGroupChange();
-});
-window.addEventListener("DOMContentLoaded", () => {
   loadLocalHistory();
   updateRowColors();
+  handleGroupChange();
 });
 </script>
 </body>
