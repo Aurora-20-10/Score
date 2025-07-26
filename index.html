@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Web Đánh Giá Checklist</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f8fa;
+    margin: 0;
+    padding: 30px;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  h2 {
+    color: #333;
+    margin-top: 0;
+  }
+     h3 {
+    color: #4caf50;
+    margin-top: 30px;
+  }
+    
+  label {
+    display: block;
+    margin: 8px 0;
+  }
+  select, button, #datePicker {
+    padding: 8px 12px;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+     #datePicker {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E");
+  }
+
+  #datePicker:hover,
+  #datePicker:focus {
+    border-color: #4CAFEF;
+    outline: none;
+  }
+  button {
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:hover {
+    background-color: #43a047;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #c8e6c9;
+  }
+  .result {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .hidden {
+    display: none;
+  }
+  label.checked {
+    background-color: #e0ffe0;
+    color: #2e7d32;
+    animation: fade-in 0.3s;
+  }
+      .flatpickr-day.complete {
+    background-color: #b2f2bb;
+    color: #000;
+  }
+  .flatpickr-day.incomplete {
+    background-color: #ffe6e6;
+    color: #000;
+  }
+ #compareChart {
+    max-height: 300px;
+  }
+  .progress {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress div {
+    height: 100%;
+    background-color: #4caf50;
+    text-align: center;
+    color: #fff;
+    line-height: 20px;
+    font-weight: bold;
+  }
+      .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .date-picker {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+  .date-picker:hover,
+  .date-picker:focus {
+    border-color: #4CAFEF;
+    outline: none;
+  }
+  .action-btn {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    margin-right: 8px;
+  }
+  .action-btn:hover {
+    background-color: #43A047;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .actions .action-btn:last-child {
+    margin-right: 0;
+  }
+    
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <div class="container">
+  <h2>Đánh Giá Checklist Cá Nhân</h2>
+  <div class="bars">
+    <div class="bar"><span>Energy ⚡</span><div class="fill" id="energyBar"></div></div>
+    <div class="bar"><span>Mood 😊</span><div class="fill" id="moodBar"></div></div>
+    <div class="bar"><span>Aura ✨</span><div class="fill" id="auraBar"></div></div>
+  </div>
+  <p><a href="lk.html">Đi tới trang Upload File</a></p>
+  <label for="category">Chọn nhóm checklist:</label>
+  <select id="category" multiple>
+    <option value="">-- Chọn nhóm --</option>
+    <option value="chamCoThe">1. 🏋️ Chăm Cơ Thể</option>
+    <option value="chamNhaCua">2. 🏠 Chăm Nhà Cửa</option>
+    <option value="dinhDuong">3. 🍎 Dinh Dưỡng – Ẩm Thực</option>
+    <option value="langPhi">4. 💰 Kiểm Soát Lãng Phí</option>
+    <option value="aura">5. ✨ Nâng Tầng Aura</option>
+    <option value="soThich">6. 🎭 Sở Thích – Dưỡng Khí</option>
+    <option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
+  </select>
+  <canvas id="compareChart" class="hidden"></canvas>
+  <div id="progressContainer" class="progress hidden"><div id="progressBar"></div></div>
+  <div class="actions">
+    <input type="text" id="datePicker" class="date-picker" />
+    <button class="action-btn" onclick="saveProgress()">Lưu kết quả</button>
+    <button class="action-btn" onclick="triggerImport()">Nhập dữ liệu</button>
+    <input type="file" id="import-file" accept=".json" class="hidden" />
+    <button class="action-btn" onclick="undoChange()">Hoàn tác</button>
+  </div>
+
+  <h3 id="checklist-title"></h3>
+
+  <form id="checklist-form"></form>
+
+    <div class="result checklist-summary">
+      <div><strong>Ngày:</strong> <span id="date"></span></div>
+      <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
+      <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div>
+      <p id="motivation" class="motivational"></p>
+
+    </div>
+  <div id="storyBox">
+      <div id="storyMessages"></div>
+  </div>
+  <div id="snippet" class="snippet"></div>
+  <div id="milestoneModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="icon">🎉</div>
+      <p id="milestoneText"></p>
+      <button id="closeModal">Đóng</button>
+      <div id="storyMessages"></div>
+    </div>
+  </div>
+      
+<h3>📖 Thành tựu</h3>
+  <table id="history-table">
+    <thead>
+      <tr><th>Ngày</th><th>Nhóm</th><th>Hoàn thành</th><th>Xếp loại</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+  <script src="script.js"></script>
+</body>
+</html>
