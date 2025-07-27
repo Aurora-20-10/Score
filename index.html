@@ -18,7 +18,7 @@
     select, button, #datePicker { padding: 8px 12px; font-size: 16px; margin-bottom: 10px; }
     #datePicker { border: 1px solid #ccc; border-radius: 8px; font-family: 'Segoe UI', Roboto, sans-serif; background-repeat: no-repeat; background-position: right 10px center; background-size: 16px 16px; padding-right: 32px; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E"); }
     #datePicker:hover, #datePicker:focus { border-color: #4CAFEF; outline: none; }
-    button { background-color: #4caf50; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+button { background-color: #4caf50; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
     button:hover { background-color: #43a047; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; }
@@ -43,20 +43,8 @@
     .fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
     #energyBar { background: #FFD700; }
     #moodBar { background: #4DB6E2; }
-#auraBar { background: #B388EB; }
+    #auraBar { background: #B388EB; }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-    /* Chain highlight styles */
-    #chainHighlightBox {
-      margin: 12px 0;
-      font-size: 19px;
-      font-weight: bold;
-      text-align: center;
-      min-height: 28px;
-    }
-    #chainHighlightBox.positive { color: #2e7d32; }
-    #chainHighlightBox.negative { color: #c62828; }
-    @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 75% { transform: translateX(-3px); } 100% { transform: translateX(0); } }
-    .shake { animation: shake 0.3s; }
   </style>
 </head>
 <body>
@@ -88,9 +76,8 @@
     </div>
     <h3 id="checklist-title"></h3>
     <form id="checklist-form"></form>
-    <div id="chainHighlightBox"></div>
     <div class="result checklist-summary">
-      <!-- <div><strong>Ngày:</strong> <span id="date"></span></div> -->
+      <div style="display:none"><span id="date"></span></div>
       <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
       <!-- <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div> -->
     </div>
@@ -111,47 +98,29 @@
         <div id="milestoneStoryMessages"></div>
       </div>
     </div>
-    <!-- XÓA bảng thành tựu -->
-    <!-- <h3>📖 Thành tựu</h3>
-    <table id="history-table">
-      <thead>
-        <tr><th>Ngày</th><th>Nhóm</th><th>Hoàn thành</th><th>Xếp loại</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table> -->
-  </div>
-<script>
+   
+    <script>
+// --- Dữ liệu checklist cho từng nhóm ---
 const checklistData = {
   chamCoThe: [
-    "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)",
-    "Rửa mặt sáng + tối",
-    "Thoa lotion body (cổ – vai – tay – chân)",
-    "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)",
-    "Đánh răng 2 lần/ngày",
-    "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài",
-    "Làm sạch môi – dưỡng môi",
-    "Tắm nước ấm buổi tối (xả stress, reset da)",
-    "Dưỡng da body tối (nếu không mệt)",
-    "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)"
-  ],
-  chamNhaCua: [
-    "Xếp chăn gọn sau khi ngủ dậy",
-    "Rửa chén bát trong ngày (không để tồn qua đêm)",
-    "Quét nhà hoặc lau chùi điểm bẩn rõ rệt",
-    "Không để đồ lung tung dưới đất",
-    "Dọn đồ trên bàn về đúng góc / vị trí",
-    "Đổ rác (tối)"
-  ],
-  dinhDuong: [
-    "1 cốc nước lọc ngay sau khi ngủ dậy",
-    "Uống nước 1.5–2L chia sáng/chiều/tối",
-    "2–3 bữa chính: đầy đủ carb tốt + đạm + rau",
     "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix",
     "1 bữa có rau xanh dạng lá (giúp tiêu hóa)",
     "1–2 bữa có trái cây tươi",
     "1 bữa có protein trắng (cá, gà, trứng)",
     "Tránh để quá 6 tiếng không ăn",
     "Không ăn khuya sau 9h tối (trừ khi tập nặng)"
+  ],
+  chamNhaCua: [
+    "Quét dọn nhà cửa",
+    "Lau chùi bếp, bàn, ghế",
+    "Sắp xếp lại đồ đạc gọn gàng",
+    "Tưới cây, chăm cây cảnh"
+  ],
+  dinhDuong: [
+    "Ăn sáng đủ chất",
+    "Uống đủ nước trong ngày",
+    "Ăn trái cây hoặc rau xanh",
+    "Hạn chế đồ ngọt, nước ngọt"
   ],
   langPhi: [
     "Không mua đồ không cần thiết",
@@ -178,30 +147,14 @@ const checklistData = {
     "Giãn cơ sau tập"
   ]
 };
-
-const checklistValues = {␊
-  // Chăm cơ thể
-  "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)": { energy: 10, mood: 0, aura: 0 },
-  "Rửa mặt sáng + tối": { energy: 5, mood: 0, aura: 5 },
-  "Thoa lotion body (cổ – vai – tay – chân)": { energy: 3, mood: 2, aura: 2 },
-  "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)": { energy: 2, mood: 2, aura: 1 },
-  "Đánh răng 2 lần/ngày": { energy: 3, mood: 1, aura: 1 },
-  "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài": { energy: 2, mood: 1, aura: 2 },
-  "Làm sạch môi – dưỡng môi": { energy: 1, mood: 1, aura: 2 },
-  "Tắm nước ấm buổi tối (xả stress, reset da)": { energy: 4, mood: 3, aura: 3 },
-  "Dưỡng da body tối (nếu không mệt)": { energy: 2, mood: 2, aura: 2 },
-  "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)": { energy: 2, mood: 2, aura: 1 },
-  // Chăm nhà cửa
-  "Xếp chăn gọn sau khi ngủ dậy": { energy: 2, mood: 1, aura: 1 },
-  "Rửa chén bát trong ngày (không để tồn qua đêm)": { energy: 2, mood: 1, aura: 1 },
-  "Quét nhà hoặc lau chùi điểm bẩn rõ rệt": { energy: 2, mood: 1, aura: 1 },
-  "Không để đồ lung tung dưới đất": { energy: 1, mood: 1, aura: 1 },
-  "Dọn đồ trên bàn về đúng góc / vị trí": { energy: 1, mood: 1, aura: 1 },
-  "Đổ rác (tối)": { energy: 2, mood: 1, aura: 1 },
-  // Dinh dưỡng
-  "1 cốc nước lọc ngay sau khi ngủ dậy": { energy: 2, mood: 1, aura: 0 },
-  "Uống nước 1.5–2L chia sáng/chiều/tối": { energy: 3, mood: 0, aura: 0 },
-  "2–3 bữa chính: đầy đủ carb tốt + đạm + rau": { energy: 5, mood: 2, aura: 1 },
+// --- Hàm lấy ngày hôm nay dạng dd/mm/yyyy ---
+function getTodayStr() {
+  const d = new Date();
+  return d.getDate().toString().padStart(2, '0') + '/' +
+         (d.getMonth() + 1).toString().padStart(2, '0') + '/' +
+         d.getFullYear();
+}
+ const checklistValues = {
   "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix": { energy: 2, mood: 2, aura: 1 },
   "1 bữa có rau xanh dạng lá (giúp tiêu hóa)": { energy: 2, mood: 1, aura: 1 },
   "1–2 bữa có trái cây tươi": { energy: 2, mood: 2, aura: 1 },
@@ -230,57 +183,6 @@ const checklistValues = {␊
   "Giãn cơ sau tập": { energy: 2, mood: 0, aura: 0 }
 };
 
-const chainRelations = {
-  // Chăm Cơ Thể
-  "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)": ["Cơ thể được bù nước", "Tuần hoàn tốt hơn", "Da căng & sạch", "Năng lượng + tập trung"],
-  "Rửa mặt sáng + tối": ["Da sạch bụi/dầu", "Giảm mụn & dị ứng", "Tự tin khi giao tiếp"],
-  "Thoa lotion body (cổ – vai – tay – chân)": ["Da ẩm & mềm", "Tránh khô nứt", "Cảm giác dễ chịu", "Aura dịu"],
-  "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)": ["Tóc gọn & bóng", "Ngoại hình chỉnh chu", "Tự tin hơn"],
-  "Đánh răng 2 lần/ngày": ["Hơi thở thơm & sạch", "Tự tin trò chuyện", "Aura tốt"],
-  "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài": ["Lỗ chân lông sạch", "Giảm mụn", "Cảm giác nhẹ mặt"],
-  "Làm sạch môi – dưỡng môi": ["Môi mềm & hồng", "Gương mặt tươi", "Tự tin"],
-  "Tắm nước ấm buổi tối (xả stress, reset da)": ["Giảm căng cơ & stress", "Ngủ sâu hơn", "Sáng dậy tỉnh táo"],
-  "Dưỡng da body tối (nếu không mệt)": ["Da mềm, mịn", "Cảm giác chăm sóc bản thân", "Tự tin & dễ chịu"],
-  "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)": ["Giảm đau cơ sau ngồi lâu", "Lưu thông máu", "Dáng form ổn"],
-  // Chăm Nhà Cửa
-  "Xếp chăn gọn sau khi ngủ dậy": ["Giường gọn gàng", "Không gian sạch", "Não ít rối", "Mood tốt"],
-  "Rửa chén bát trong ngày (không để tồn qua đêm)": ["Nhà bếp sạch", "Không mùi hôi", "Tâm lý thoải mái", "Dễ nấu ăn"],
-  "Quét nhà hoặc lau chùi điểm bẩn rõ rệt": ["Không gian sạch sẽ", "Aura nhà thở", "Tâm trạng nhẹ"],
-  "Không để đồ lung tung dưới đất": ["Phòng gọn", "Giảm vướng víu", "Cảm giác kiểm soát"],
-  "Dọn đồ trên bàn về đúng góc / vị trí": ["Bàn sạch", "Não bớt loạn", "Hiệu suất học/làm việc cao hơn"],
-  "Đổ rác (tối)": ["Không mùi hôi, không kiến gián", "Không gian sạch khí"],
-  // Dinh Dưỡng – Ẩm Thực
-  "1 cốc nước lọc ngay sau khi ngủ dậy": ["Thải độc đêm", "Hệ tiêu hóa kích hoạt", "Não tỉnh"],
-  "Uống nước 1.5–2L chia sáng/chiều/tối": ["Da ẩm & sạch", "Thận khỏe", "Năng lượng đều"],
-  "2–3 bữa chính: đầy đủ carb tốt + đạm + rau": ["Đường huyết ổn", "Năng lượng bền", "Không uể oải"],
-  "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix": ["Không đói gắt", "Kiểm soát ăn vặt", "Cân nặng ổn định"],
-  "1 bữa có rau xanh dạng lá (giúp tiêu hóa)": ["Chất xơ", "Hệ tiêu hóa khỏe", "Da đẹp"],
-  "1–2 bữa có trái cây tươi": ["Vitamin", "Miễn dịch tốt", "Cảm giác tươi mới"],
-  "1 bữa có protein trắng (cá, gà, trứng)": ["Cơ bắp phục hồi", "Giảm mệt", "Ngủ tốt hơn"],
-  "Tránh để quá 6 tiếng không ăn": ["Đường huyết không rớt", "Không chóng mặt", "Năng suất ổn"],
-  "Không ăn khuya sau 9h tối (trừ khi tập nặng)": ["Dạ dày nghỉ", "Ngủ ngon hơn", "Sáng tỉnh"],
-  // Kiểm Soát Lãng Phí
-  "Không mua đồ không cần thiết": ["Giữ tiền", "Giảm áp lực tài chính", "Đầu óc nhẹ"],
-  "Không tiêu tiền cho thói quen xấu": ["Ít cảm giác tội lỗi", "Tinh thần ổn định"],
-  "Kiểm tra ví trước khi ra ngoài": ["Kiểm soát chi tiêu", "Hạn chế mua impulsive"],
-  "Ghi chú chi tiêu trong ngày": ["Nhìn rõ dòng tiền", "Quản lý tốt", "Ít stress tài chính"],
-  // Nâng Tầng Aura
-  "Thiền hoặc thở sâu 5 phút": ["Giảm stress", "Não tĩnh", "Aura sáng"],
-  "Đọc sách phát triển bản thân": ["Tư duy mở", "Tự tin", "Aura mạnh"],
-  "Viết nhật ký cảm xúc": ["Xả cảm xúc", "Cân bằng", "Aura tĩnh"],
-  "Nghe nhạc thư giãn": ["Não reset", "Thoải mái", "Aura dịu"],
-  // Sở Thích – Dưỡng Khí
-  "Vẽ/trang trí/viết lách": ["Kích thích sáng tạo", "Tâm an", "Aura nghệ"],
-  "Chơi nhạc cụ hoặc nghe nhạc": ["Endorphin", "Vui vẻ", "Aura sáng"],
-  "Tập thể thao nhẹ nhàng": ["Cơ thể linh hoạt", "Mood tốt", "Aura khỏe"],
-  "Chăm sóc cây cảnh/thú cưng": ["Nuôi dưỡng cảm xúc", "Aura ấm"],
-  // Thể Dục – Cơ Xương – Dáng Form
-  "Khởi động 5 phút": ["Giảm nguy cơ chấn thương", "Tập hiệu quả"],
-  "Tập thể dục ít nhất 15 phút": ["Endorphin", "Năng lượng tăng", "Ngủ sâu"],
-  "Đi bộ 5000 bước trở lên": ["Tim mạch & phổi khỏe", "Lưu thông máu", "Mood tốt"],
-  "Giãn cơ sau tập": ["Cơ phục hồi", "Giảm đau", "Tập đều hơn"]
-};
-
 const storyBank = [
   "Một làn khí nhẹ lan ra quanh bạn.",
   "Bạn thấy cơ thể mình ấm lên một chút.",
@@ -303,64 +205,45 @@ let compareChart;
 const categorySelect = document.getElementById('category');
 
 // --- Thanh trạng thái ---
-const stats = { energy: 0, mood: 0, aura: 0 };
-let statsDate = ""; // ngày hiện tại của thanh bar
-
-// --- Tính năng chính ---
+// --- Tính lại tổng điểm energy, mood, aura cho nhóm hiện tại ---
 function recalcStatsForCurrentGroup() {
-  // Reset stats
-  stats.energy = 0; stats.mood = 0; stats.aura = 0;
-  // Tính tổng tất cả mục nhỏ đã tick của tất cả nhóm (không chỉ currentGroup)
-  Object.keys(checklistData).forEach(group => {
-    const items = checklistData[group];
-    const values = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
-    items.forEach((item, idx) => {
-      if (values[idx]) {
-        const val = checklistValues[item] || { energy: 0, mood: 0, aura: 0 };
-        stats.energy += val.energy;
-        stats.mood += val.mood;
-        stats.aura += val.aura;
-      }
-    });
-  });
-  // Clamp to 100
-  stats.energy = Math.min(100, stats.energy);
-  stats.mood = Math.min(100, stats.mood);
-  stats.aura = Math.min(100, stats.aura);
+  stats.energy = 0;
+  stats.mood = 0;
+  stats.aura = 0;
+  if (!currentGroup || !checklistData[currentGroup]) {
+    updateBars();
+    saveStats();
+    return;
+  }
+  const items = checklistData[currentGroup];
+  const values = JSON.parse(localStorage.getItem('progress_' + currentGroup) || '[]');
+  for (let i = 0; i < items.length; i++) {
+    if (values[i]) {
+      const val = checklistValues[items[i]] || { energy: 0, mood: 0, aura: 0 };
+      stats.energy += val.energy;
+      stats.mood += val.mood;
+      stats.aura += val.aura;
+    }
+  }
   updateBars();
   saveStats();
 }
+const stats = { energy: 0, mood: 0, aura: 0 };
+let statsDate = ""; // ngày hiện tại của thanh bar
 
-function getTodayStr() {
-  // Đảm bảo format giống flatpickr (dd/mm/yyyy)
-  const d = new Date();
-  return d.toLocaleDateString('vi-VN');
-}
-
-function loadStats(){
-  const today = getTodayStr();
-  const saved = localStorage.getItem('simStats');
-  let s = { energy: 0, mood: 0, aura: 0, date: today };
-  if(saved){
-    try {
-      s = JSON.parse(saved);
-    } catch {}
-  }
-  // Nếu khác ngày thì reset về 0
-  if (s.date !== today) {
-    stats.energy = 0; stats.mood = 0; stats.aura = 0;
-    statsDate = today;
-    saveStats();
-    // Reset tất cả checklist đã tick cho ngày mới
-    Object.keys(checklistData).forEach(group => {
-      localStorage.removeItem('progress_' + group);
-    });
-    if (currentGroup) renderChecklist(currentGroup);
+function loadStats() {
+  // Lấy trạng thái thanh bar từ localStorage
+  const saved = JSON.parse(localStorage.getItem('simStats') || '{}');
+  if (saved && saved.date === getTodayStr()) {
+    stats.energy = saved.energy || 0;
+    stats.mood = saved.mood || 0;
+    stats.aura = saved.aura || 0;
+    statsDate = saved.date;
   } else {
-    stats.energy = s.energy || 0;
-    stats.mood = s.mood || 0;
-    stats.aura = s.aura || 0;
-    statsDate = s.date || today;
+    stats.energy = 0;
+    stats.mood = 0;
+    stats.aura = 0;
+    statsDate = getTodayStr();
   }
   updateBars();
 }
@@ -389,8 +272,8 @@ function updateBars(){
 }
 
 // --- Hiệu ứng story ---
-function fadeSnippet(text){␊
-  const snippetDiv = document.getElementById('snippet');␊
+function fadeSnippet(text){
+  const snippetDiv = document.getElementById('snippet');
   snippetDiv.style.opacity = 0;
   snippetDiv.style.transform = "translateY(20px) scale(0.95)";
   setTimeout(()=>{
@@ -401,24 +284,12 @@ function fadeSnippet(text){␊
   }, 80);
 }
 
-function updateChainHighlight(item, checked){
-  const box = document.getElementById('chainHighlightBox');
-  const effects = chainRelations[item];
-  if(!effects){
-    box.textContent = '';
-    box.className = '';
-    return;
-  }
-  if(checked){
-    box.textContent = '✅ Tick "' + item + '" → ' + effects.join(' → ');
-    box.className = 'positive';
-  } else {
-    box.textContent = '❌ Bỏ tick "' + item + '" → mất: ' + effects.join(', ');
-    box.className = 'negative shake';
-    setTimeout(()=> box.classList.remove('shake'), 300);
-  }
-}
 // --- Modal thành tựu ---
+// --- Hiển thị modal thành tựu khi hoàn thành checklist ---
+function showMilestone(text) {
+  milestoneText.textContent = text;
+  modal.classList.remove('hidden');
+}
 const modal = document.getElementById('milestoneModal');
 const milestoneText = document.getElementById('milestoneText');
 document.getElementById('closeModal').addEventListener('click',()=>modal.classList.add('hidden'));
@@ -428,8 +299,6 @@ function renderChecklist(group) {
   const checklistDiv = document.getElementById('checklist-form');
   checklistDiv.innerHTML = '';
   fadeSnippet('');
-  document.getElementById('chainHighlightBox').textContent = '';
-  document.getElementById('chainHighlightBox').className = '';
   if (!group || !checklistData[group]) {
     updateSummary(0, 0, "Chưa xác định", "");
     recalcStatsForCurrentGroup();
@@ -464,7 +333,6 @@ function renderChecklist(group) {
 function onChecklistToggle(item, checked, group, idx, label) {
   // Không cộng trực tiếp vào stats, chỉ lưu trạng thái, recalcStatsForCurrentGroup sẽ tính lại
   fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
-  updateChainHighlight(item, checked);
   const progress = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
   if (progress.length && progress.every(v => v)) {
     showMilestone(milestoneBank[Math.floor(Math.random() * milestoneBank.length)]);
