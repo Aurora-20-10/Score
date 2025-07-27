@@ -43,8 +43,20 @@
     .fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
     #energyBar { background: #FFD700; }
     #moodBar { background: #4DB6E2; }
-    #auraBar { background: #B388EB; }
+#auraBar { background: #B388EB; }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    /* Chain highlight styles */
+    #chainHighlightBox {
+      margin: 12px 0;
+      font-size: 19px;
+      font-weight: bold;
+      text-align: center;
+      min-height: 28px;
+    }
+    #chainHighlightBox.positive { color: #2e7d32; }
+    #chainHighlightBox.negative { color: #c62828; }
+    @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 75% { transform: translateX(-3px); } 100% { transform: translateX(0); } }
+    .shake { animation: shake 0.3s; }
   </style>
 </head>
 <body>
@@ -76,6 +88,7 @@
     </div>
     <h3 id="checklist-title"></h3>
     <form id="checklist-form"></form>
+    <div id="chainHighlightBox"></div>
     <div class="result checklist-summary">
       <!-- <div><strong>Ngày:</strong> <span id="date"></span></div> -->
       <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
@@ -166,7 +179,7 @@ const checklistData = {
   ]
 };
 
-const checklistValues = {
+const checklistValues = {␊
   // Chăm cơ thể
   "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)": { energy: 10, mood: 0, aura: 0 },
   "Rửa mặt sáng + tối": { energy: 5, mood: 0, aura: 5 },
@@ -215,6 +228,57 @@ const checklistValues = {
   "Tập thể dục ít nhất 15 phút": { energy: 10, mood: 0, aura: 0 },
   "Đi bộ 5000 bước trở lên": { energy: 8, mood: 0, aura: 0 },
   "Giãn cơ sau tập": { energy: 2, mood: 0, aura: 0 }
+};
+
+const chainRelations = {
+  // Chăm Cơ Thể
+  "Uống đủ 1.5 – 2L nước (chia 3 khung sáng – chiều – tối)": ["Cơ thể được bù nước", "Tuần hoàn tốt hơn", "Da căng & sạch", "Năng lượng + tập trung"],
+  "Rửa mặt sáng + tối": ["Da sạch bụi/dầu", "Giảm mụn & dị ứng", "Tự tin khi giao tiếp"],
+  "Thoa lotion body (cổ – vai – tay – chân)": ["Da ẩm & mềm", "Tránh khô nứt", "Cảm giác dễ chịu", "Aura dịu"],
+  "Chải tóc – xịt dưỡng ẩm ngọn tóc (nếu tóc khô)": ["Tóc gọn & bóng", "Ngoại hình chỉnh chu", "Tự tin hơn"],
+  "Đánh răng 2 lần/ngày": ["Hơi thở thơm & sạch", "Tự tin trò chuyện", "Aura tốt"],
+  "Tẩy trang / lau sạch mặt nếu dùng kem chống nắng hoặc đi ra ngoài": ["Lỗ chân lông sạch", "Giảm mụn", "Cảm giác nhẹ mặt"],
+  "Làm sạch môi – dưỡng môi": ["Môi mềm & hồng", "Gương mặt tươi", "Tự tin"],
+  "Tắm nước ấm buổi tối (xả stress, reset da)": ["Giảm căng cơ & stress", "Ngủ sâu hơn", "Sáng dậy tỉnh táo"],
+  "Dưỡng da body tối (nếu không mệt)": ["Da mềm, mịn", "Cảm giác chăm sóc bản thân", "Tự tin & dễ chịu"],
+  "Kéo giãn chân, gập bụng nhẹ 3–5 phút (nếu ngồi lâu)": ["Giảm đau cơ sau ngồi lâu", "Lưu thông máu", "Dáng form ổn"],
+  // Chăm Nhà Cửa
+  "Xếp chăn gọn sau khi ngủ dậy": ["Giường gọn gàng", "Không gian sạch", "Não ít rối", "Mood tốt"],
+  "Rửa chén bát trong ngày (không để tồn qua đêm)": ["Nhà bếp sạch", "Không mùi hôi", "Tâm lý thoải mái", "Dễ nấu ăn"],
+  "Quét nhà hoặc lau chùi điểm bẩn rõ rệt": ["Không gian sạch sẽ", "Aura nhà thở", "Tâm trạng nhẹ"],
+  "Không để đồ lung tung dưới đất": ["Phòng gọn", "Giảm vướng víu", "Cảm giác kiểm soát"],
+  "Dọn đồ trên bàn về đúng góc / vị trí": ["Bàn sạch", "Não bớt loạn", "Hiệu suất học/làm việc cao hơn"],
+  "Đổ rác (tối)": ["Không mùi hôi, không kiến gián", "Không gian sạch khí"],
+  // Dinh Dưỡng – Ẩm Thực
+  "1 cốc nước lọc ngay sau khi ngủ dậy": ["Thải độc đêm", "Hệ tiêu hóa kích hoạt", "Não tỉnh"],
+  "Uống nước 1.5–2L chia sáng/chiều/tối": ["Da ẩm & sạch", "Thận khỏe", "Năng lượng đều"],
+  "2–3 bữa chính: đầy đủ carb tốt + đạm + rau": ["Đường huyết ổn", "Năng lượng bền", "Không uể oải"],
+  "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix": ["Không đói gắt", "Kiểm soát ăn vặt", "Cân nặng ổn định"],
+  "1 bữa có rau xanh dạng lá (giúp tiêu hóa)": ["Chất xơ", "Hệ tiêu hóa khỏe", "Da đẹp"],
+  "1–2 bữa có trái cây tươi": ["Vitamin", "Miễn dịch tốt", "Cảm giác tươi mới"],
+  "1 bữa có protein trắng (cá, gà, trứng)": ["Cơ bắp phục hồi", "Giảm mệt", "Ngủ tốt hơn"],
+  "Tránh để quá 6 tiếng không ăn": ["Đường huyết không rớt", "Không chóng mặt", "Năng suất ổn"],
+  "Không ăn khuya sau 9h tối (trừ khi tập nặng)": ["Dạ dày nghỉ", "Ngủ ngon hơn", "Sáng tỉnh"],
+  // Kiểm Soát Lãng Phí
+  "Không mua đồ không cần thiết": ["Giữ tiền", "Giảm áp lực tài chính", "Đầu óc nhẹ"],
+  "Không tiêu tiền cho thói quen xấu": ["Ít cảm giác tội lỗi", "Tinh thần ổn định"],
+  "Kiểm tra ví trước khi ra ngoài": ["Kiểm soát chi tiêu", "Hạn chế mua impulsive"],
+  "Ghi chú chi tiêu trong ngày": ["Nhìn rõ dòng tiền", "Quản lý tốt", "Ít stress tài chính"],
+  // Nâng Tầng Aura
+  "Thiền hoặc thở sâu 5 phút": ["Giảm stress", "Não tĩnh", "Aura sáng"],
+  "Đọc sách phát triển bản thân": ["Tư duy mở", "Tự tin", "Aura mạnh"],
+  "Viết nhật ký cảm xúc": ["Xả cảm xúc", "Cân bằng", "Aura tĩnh"],
+  "Nghe nhạc thư giãn": ["Não reset", "Thoải mái", "Aura dịu"],
+  // Sở Thích – Dưỡng Khí
+  "Vẽ/trang trí/viết lách": ["Kích thích sáng tạo", "Tâm an", "Aura nghệ"],
+  "Chơi nhạc cụ hoặc nghe nhạc": ["Endorphin", "Vui vẻ", "Aura sáng"],
+  "Tập thể thao nhẹ nhàng": ["Cơ thể linh hoạt", "Mood tốt", "Aura khỏe"],
+  "Chăm sóc cây cảnh/thú cưng": ["Nuôi dưỡng cảm xúc", "Aura ấm"],
+  // Thể Dục – Cơ Xương – Dáng Form
+  "Khởi động 5 phút": ["Giảm nguy cơ chấn thương", "Tập hiệu quả"],
+  "Tập thể dục ít nhất 15 phút": ["Endorphin", "Năng lượng tăng", "Ngủ sâu"],
+  "Đi bộ 5000 bước trở lên": ["Tim mạch & phổi khỏe", "Lưu thông máu", "Mood tốt"],
+  "Giãn cơ sau tập": ["Cơ phục hồi", "Giảm đau", "Tập đều hơn"]
 };
 
 const storyBank = [
@@ -325,8 +389,8 @@ function updateBars(){
 }
 
 // --- Hiệu ứng story ---
-function fadeSnippet(text){
-  const snippetDiv = document.getElementById('snippet');
+function fadeSnippet(text){␊
+  const snippetDiv = document.getElementById('snippet');␊
   snippetDiv.style.opacity = 0;
   snippetDiv.style.transform = "translateY(20px) scale(0.95)";
   setTimeout(()=>{
@@ -337,6 +401,23 @@ function fadeSnippet(text){
   }, 80);
 }
 
+function updateChainHighlight(item, checked){
+  const box = document.getElementById('chainHighlightBox');
+  const effects = chainRelations[item];
+  if(!effects){
+    box.textContent = '';
+    box.className = '';
+    return;
+  }
+  if(checked){
+    box.textContent = '✅ Tick "' + item + '" → ' + effects.join(' → ');
+    box.className = 'positive';
+  } else {
+    box.textContent = '❌ Bỏ tick "' + item + '" → mất: ' + effects.join(', ');
+    box.className = 'negative shake';
+    setTimeout(()=> box.classList.remove('shake'), 300);
+  }
+}
 // --- Modal thành tựu ---
 const modal = document.getElementById('milestoneModal');
 const milestoneText = document.getElementById('milestoneText');
@@ -347,6 +428,8 @@ function renderChecklist(group) {
   const checklistDiv = document.getElementById('checklist-form');
   checklistDiv.innerHTML = '';
   fadeSnippet('');
+  document.getElementById('chainHighlightBox').textContent = '';
+  document.getElementById('chainHighlightBox').className = '';
   if (!group || !checklistData[group]) {
     updateSummary(0, 0, "Chưa xác định", "");
     recalcStatsForCurrentGroup();
@@ -381,6 +464,7 @@ function renderChecklist(group) {
 function onChecklistToggle(item, checked, group, idx, label) {
   // Không cộng trực tiếp vào stats, chỉ lưu trạng thái, recalcStatsForCurrentGroup sẽ tính lại
   fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
+  updateChainHighlight(item, checked);
   const progress = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
   if (progress.length && progress.every(v => v)) {
     showMilestone(milestoneBank[Math.floor(Math.random() * milestoneBank.length)]);
