@@ -45,6 +45,17 @@ button { background-color: #4caf50; color: #fff; border: none; border-radius: 4p
     #moodBar { background: #4DB6E2; }
     #auraBar { background: #B388EB; }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+#chainHighlightBox {
+  border: 2px solid #b2dfdb;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  min-height: 38px;
+  padding: 8px 12px;
+  transition: background 0.3s, border 0.3s, box-shadow 0.3s;
+}
+.chain-highlight {
+  /* giữ lại class cho hiệu ứng cũ nếu có */
+}
   </style>
 </head>
 <body>
@@ -81,6 +92,116 @@ button { background-color: #4caf50; color: #fff; border: none; border-radius: 4p
       <!-- <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div> -->
     </div>
     <form id="checklist-form"></form>
+    <!-- Nút xem lịch sử -->
+    <div style="text-align:right; margin: 10px 0 0 0;">
+      <button id="viewHistoryBtn" type="button" style="background:#1976d2; color:#fff; border-radius:6px; padding:7px 18px; font-size:16px; font-weight:500; border:none; cursor:pointer;">📆 Xem lịch sử</button>
+    </div>
+    <!-- Modal popup lịch sử -->
+    <div id="historyModal" class="modal hidden" style="z-index:10000; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.18); display:none; align-items:center; justify-content:center;">
+      <div id="historyModalContent" style="background:#fff; border-radius:14px; max-width:900px; width:98vw; max-height:90vh; overflow:auto; box-shadow:0 4px 32px rgba(25,118,210,0.13); padding:32px 24px 24px 24px; position:relative;">
+        <button id="closeHistoryModal" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:26px; color:#888; cursor:pointer;">&times;</button>
+        <h2 style="margin-top:0; color:#1976d2;">Lịch sử Checklist</h2>
+        <!-- Filter -->
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:18px;">
+          <label>Lọc:</label>
+          <select id="historyRange" style="padding:6px 12px; border-radius:6px;">
+            <option value="week">Tuần này</option>
+            <option value="month">Tháng này</option>
+            <option value="3months">3 tháng</option>
+            <option value="all">Toàn bộ</option>
+          </select>
+          <input type="text" id="historyDatePicker" style="padding:6px 12px; border-radius:6px; width:130px;" placeholder="Chọn ngày..." readonly />
+        </div>
+        <!-- Biểu đồ -->
+        <canvas id="historyChart" style="width:100%; max-height:220px; margin-bottom:18px; background:#f8fafd; border-radius:10px;"></canvas>
+       <!-- Biểu đồ Emotion/Performance Flow -->
+<canvas id="emotionFlowChart" style="width:100%; max-height:280px; margin-bottom:18px; background:#f8fafd; border-radius:10px;"></canvas>
+        <!-- Highlight insight -->
+        <div id="historyHighlight" style="margin-bottom:14px; font-size:15px; color:#333;"></div>
+        <!-- Bảng lịch sử -->
+        <table id="historyTable" style="width:100%; border-collapse:collapse; margin-bottom:18px;">
+          <thead>
+            <tr style="background:#e3f2fd;">
+              <th style="padding:7px 8px;">Ngày</th>
+              <th style="padding:7px 8px;">Đã tick</th>
+              <th style="padding:7px 8px;">Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dữ liệu sẽ render động -->
+          </tbody>
+        </table>
+        <!-- Nút export -->
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button id="exportCSVBtn" type="button" style="background:#388e3c; color:#fff; border-radius:6px; padding:7px 18px; font-size:15px; font-weight:500; border:none; cursor:pointer;">⬇ Xuất CSV</button>
+          <button id="exportXLSXBtn" type="button" style="background:#fbc02d; color:#333; border-radius:6px; padding:7px 18px; font-size:15px; font-weight:500; border:none; cursor:pointer;">⬇ Xuất Excel</button>
+          <span id="exportMsg" style="margin-left:10px; color:#388e3c; font-size:15px;"></span>
+        </div>
+      </div>
+    </div>
+<script>
+// --- Lịch sử checklist: mở/đóng modal ---
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('viewHistoryBtn');
+  const modal = document.getElementById('historyModal');
+  const closeBtn = document.getElementById('closeHistoryModal');
+
+  // 👉 Nhấn nút 📆 -> hiện modal
+btn.addEventListener('click', function() {
+    modal.style.display = 'flex';
+    renderHistoryTable();   // ✅ Gọi hàm render bảng khi mở modal
+    updateHistoryHighlight();
+    renderEmotionFlow();  // ✅ 
+});
+
+// === XUẤT CSV ===
+document.getElementById("exportCSVBtn").addEventListener("click", function () {
+  let csv = "Ngày,Đã tick,Chi tiết\n";
+  document.querySelectorAll("#historyTable tbody tr").forEach(row => {
+    let cols = row.querySelectorAll("td");
+    let rowData = Array.from(cols).map(td => `"${td.innerText.replace(/\n/g, " ")}"`).join(",");
+    csv += rowData + "\n";
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "checklist-history.csv";
+  link.click();
+});
+
+// === XUẤT EXCEL (dùng HTML table thành file .xls) ===
+document.getElementById("exportXLSXBtn").addEventListener("click", function () {
+  let table = document.getElementById("historyTable").outerHTML;
+  const blob = new Blob([table], { type: "application/vnd.ms-excel" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "checklist-history.xls";
+  link.click();
+});
+
+  // 👉 Nhấn ❌ -> ẩn modal
+  closeBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+  });
+
+  // 👉 Click ra ngoài overlay -> ẩn modal
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // Datepicker cho filter lịch sử (dùng flatpickr nếu có)
+  if (window.flatpickr) {
+    flatpickr("#historyDatePicker", {
+      dateFormat: "d/m/Y",
+      allowInput: true,
+      clickOpens: true
+    });
+  }
+});
+</script>
     <!-- Chain Highlight Box -->
     <div id="chainHighlightBox" class="chain-highlight" style="min-height:38px; font-size:17px; font-weight:500; text-align:center; border-radius:10px; background:#f8fafd; box-shadow:0 2px 8px rgba(76,175,80,0.06); transition:all 0.3s; display:none;"></div>
     <!-- Đưa snippet lên ngay dưới checklist-form, thêm hiệu ứng đẹp -->
@@ -462,6 +583,10 @@ const checklistValues = {
   "Giãn cơ sau tập": { energy: 2, mood: 0, aura: 0 }
 };
 
+function getSelectedDate() {
+  // Lấy ngày từ lịch (datePicker) nếu có chọn, nếu trống thì dùng hôm nay
+  return document.getElementById('datePicker').value || getTodayStr();
+}
 const storyBank = [
   "Một làn khí nhẹ lan ra quanh bạn.",
   "Bạn thấy cơ thể mình ấm lên một chút.",
@@ -495,7 +620,7 @@ function recalcStatsForCurrentGroup() {
     return;
   }
   const items = checklistData[currentGroup];
-  const values = JSON.parse(localStorage.getItem('progress_' + currentGroup) || '[]');
+  const values = JSON.parse(localStorage.getItem('progress_' + currentGroup + '_' + getTodayStr()) || '[]');
   for (let i = 0; i < items.length; i++) {
     if (values[i]) {
       const val = checklistValues[items[i]] || { energy: 0, mood: 0, aura: 0 };
@@ -605,7 +730,7 @@ function renderChecklist(group) {
     return;
   }
   const items = checklistData[group];
-  let currentValues = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
+  let currentValues = JSON.parse(localStorage.getItem('progress_' + group + '_' + getSelectedDate()) || '[]');
   if (currentValues.length !== items.length) currentValues = items.map(() => false);
   // Kiểm tra có mục nào đã tick chưa
   let anyChecked = currentValues.some(Boolean);
@@ -622,7 +747,7 @@ function renderChecklist(group) {
     cb.addEventListener('change', () => {
       currentValues[idx] = cb.checked;
       label.classList.toggle('checked', cb.checked);
-      localStorage.setItem('progress_' + group, JSON.stringify(currentValues));
+      localStorage.setItem('progress_' + group + '_' + getSelectedDate(), JSON.stringify(currentValues));
       // Kiểm tra lại số lượng tick sau khi thay đổi
       let anyCheckedNow = currentValues.some(Boolean);
       updateChainHighlight(item, cb.checked, anyCheckedNow);
@@ -642,7 +767,7 @@ function onChecklistToggle(item, checked, group, idx, label) {
   // Không cộng trực tiếp vào stats, chỉ lưu trạng thái, recalcStatsForCurrentGroup sẽ tính lại
   fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
   updateChainHighlight(item, checked);
-  const progress = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
+  const progress = JSON.parse(localStorage.getItem('progress_' + group + '_' + getTodayStr()) || '[]');
   if (progress.length && progress.every(v => v)) {
     showMilestone(milestoneBank[Math.floor(Math.random() * milestoneBank.length)]);
   }
@@ -750,7 +875,7 @@ function triggerImport() {
 }
 function undoChange() {
   if (currentGroup) {
-    localStorage.removeItem('progress_' + currentGroup);
+    localStorage.removeItem('progress_' + currentGroup + '_' + getSelectedDate());
     renderChecklist(currentGroup);
   }
 }
@@ -818,7 +943,7 @@ function renderCompareChart(groups) {
   const labels = groups.map(getGroupName);
   const completed = groups.map(g => {
     const items = checklistData[g] || [];
-    const values = JSON.parse(localStorage.getItem('progress_' + g) || '[]');
+    const values = JSON.parse(localStorage.getItem('progress_' + g + '_' + getTodayStr()) || '[]');
     return values.filter(Boolean).length;
   });
   const totals = groups.map(g => (checklistData[g] || []).length);
@@ -867,20 +992,145 @@ function getGroupName(key) {
   };
   return map[key] || key;
 }
+
+// === HÀM MỚI: render dữ liệu vào bảng lịch sử ===
+function renderHistoryTable() {
+  const tbody = document.querySelector("#historyTable tbody");
+  tbody.innerHTML = "";
+
+  const allKeys = Object.keys(localStorage).filter(k => k.startsWith("progress_"));
+
+  if (allKeys.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#888;'>Chưa có dữ liệu</td></tr>";
+    return;
+  }
+
+  allKeys.forEach(key => {
+    // 👉 Tách group và date chính xác hơn
+    const parts = key.replace("progress_", "").split("_");
+    const group = parts[0];            // phần đầu là group
+    const date = parts.slice(1).join("_"); // ghép phần còn lại thành date
+
+    const ticks = JSON.parse(localStorage.getItem(key) || "[]");
+    const items = checklistData[group] || [];
+
+    // 👉 Đếm số mục đã tick
+    const completed = ticks.filter(Boolean).length;
+    const total = items.length;
+
+    // 👉 Tạo hàng mới cho bảng
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td>${completed}/${total}</td>
+      <td>${items.map((item, idx) => ticks[idx] ? "✅ " + item : "❌ " + item).join("<br>")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateHistoryHighlight(); // ✅ Gọi hàm update insight sau khi render xong bảng
+}
+
+// === TẠO INSIGHT CHO BOX #historyHighlight ===
+function updateHistoryHighlight() {
+  const highlightBox = document.getElementById("historyHighlight");
+  const rows = document.querySelectorAll("#historyTable tbody tr");
+  
+  if (!rows.length || rows[0].innerText.includes("Chưa có dữ liệu")) {
+    highlightBox.innerHTML = "❌ Chưa có dữ liệu để thống kê.";
+    return;
+  }
+
+  let total = 0, done = 0, bestDay = "", bestScore = 0;
+
+  rows.forEach(row => {
+    const date = row.querySelector("td").innerText;
+    const tick = row.querySelector("td:nth-child(2)").innerText.split("/");
+    const doneToday = parseInt(tick[0]);
+    const totalToday = parseInt(tick[1]);
+    done += doneToday;
+    total += totalToday;
+    if (doneToday > bestScore) {
+      bestScore = doneToday;
+      bestDay = date;
+    }
+  });
+
+  const percent = Math.round((done/total)*100);
+  highlightBox.innerHTML =
+    `📊 <b>${done}/${total}</b> mục đã hoàn thành (${percent}%).<br>
+     🏆 Ngày tốt nhất: <b>${bestDay}</b> (${bestScore} mục tick)`;
+}
+
+function renderEmotionFlow() {
+  const ctx = document.getElementById("emotionFlowChart").getContext("2d");
+
+  // 🔍 1. Lấy toàn bộ dữ liệu tick trong localStorage
+  const allKeys = Object.keys(localStorage).filter(k => k.startsWith("progress_"));
+
+  if (allKeys.length === 0) {
+    ctx.font = "16px Arial";
+    ctx.fillText("❌ Chưa có dữ liệu để vẽ Emotion Flow", 10, 50);
+    return;
+  }
+
+  // 🔍 2. Gom dữ liệu thành dạng { "dd/mm/yyyy": {energy: X, mood: Y, aura: Z} }
+  const dailyStats = {};
+  allKeys.forEach(key => {
+    const parts = key.replace("progress_", "").split("_");
+    const group = parts[0];
+    const date = parts.slice(1).join("_");
+    const ticks = JSON.parse(localStorage.getItem(key) || "[]");
+    const items = checklistData[group] || [];
+
+    items.forEach((item, idx) => {
+      if (ticks[idx]) { // nếu tick
+        const val = checklistValues[item] || { energy: 0, mood: 0, aura: 0 };
+        if (!dailyStats[date]) dailyStats[date] = { energy: 0, mood: 0, aura: 0 };
+        dailyStats[date].energy += val.energy;
+        dailyStats[date].mood += val.mood;
+        dailyStats[date].aura += val.aura;
+      }
+    });
+  });
+
+  // 🔍 3. Chuyển dữ liệu thành array để Chart.js vẽ
+  const labels = Object.keys(dailyStats).sort((a,b)=>{
+    const [da,ma,ya] = a.split("/").map(Number);
+    const [db,mb,yb] = b.split("/").map(Number);
+    return new Date(ya,ma-1,da) - new Date(yb,mb-1,db);
+  });
+
+  const energyData = labels.map(d => dailyStats[d].energy);
+  const moodData   = labels.map(d => dailyStats[d].mood);
+  const auraData   = labels.map(d => dailyStats[d].aura);
+
+  // 🔍 4. Vẽ biểu đồ area stacked
+  if (window.emotionChart) {
+    window.emotionChart.destroy(); // nếu có chart cũ thì xoá
+  }
+  window.emotionChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "⚡ Energy", data: energyData, fill: true, backgroundColor: "rgba(255,215,0,0.3)", borderColor: "#FFD700", tension: 0.4 },
+        { label: "😊 Mood",   data: moodData, fill: true, backgroundColor: "rgba(77,182,226,0.3)", borderColor: "#4DB6E2", tension: 0.4 },
+        { label: "✨ Aura",   data: auraData, fill: true, backgroundColor: "rgba(179,136,235,0.3)", borderColor: "#B388EB", tension: 0.4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' }
+      },
+      scales: {
+        x: { title: { display: true, text: "Ngày" } },
+        y: { beginAtZero: true, title: { display: true, text: "Điểm" } }
+      }
+    }
+  });
+}
+
 </script>
-</body>
-<style>
-#chainHighlightBox {
-  border: 2px solid #b2dfdb;
-  margin-top: 10px;
-  margin-bottom: 12px;
-  min-height: 38px;
-  padding: 8px 12px;
-  transition: background 0.3s, border 0.3s, box-shadow 0.3s;
-}
-.chain-highlight {
-  /* giữ lại class cho hiệu ứng cũ nếu có */
-}
-</style>
 </body>
 </html>
