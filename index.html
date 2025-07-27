@@ -110,7 +110,7 @@ label.checked:hover {
 }
 
 /* Chart load fade-in */
-#historyChart, #emotionFlowChart {
+#emotionFlowChart {
   opacity: 0;
   transition: opacity 0.8s ease;
 }
@@ -123,7 +123,7 @@ label.checked:hover {
   animation: pulseGlow 2.5s ease-in-out infinite;
 }
 /* --- Fix modal content auto height --- */
-#historyModalContent > canvas:last-of-type,
+#historyModalContent > canvas,
 #historyModalContent > table,
 #historyModalContent > div,
 #historyModalContent > select {
@@ -134,10 +134,9 @@ label.checked:hover {
   height: auto !important;
 }
 
-/* ✅ Fix khoảng trống khi không có dữ liệu */
-#historyChart {
-  min-height: 60px;    /* không để khung bị cao trống */
-  margin-top: 10px;    /* tạo khoảng cách đẹp với tiêu đề */
+#emotionFlowChart {
+  min-height: 60px;
+  margin-top: 10px;
 }
   </style>
 </head>
@@ -167,6 +166,7 @@ label.checked:hover {
       <button class="action-btn" onclick="triggerImport()">Nhập dữ liệu</button>
       <input type="file" id="import-file" accept=".json" class="hidden" />
       <button class="action-btn" onclick="undoChange()">Hoàn tác</button>
+      <button class="action-btn" onclick="exportDataJSON()">💾 Xuất dữ liệu JSON</button>
     </div>
     <h3 id="checklist-title"></h3>
     <div class="result checklist-summary" style="margin-bottom: 10px;">
@@ -186,8 +186,6 @@ label.checked:hover {
     <button id="closeHistoryModal" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:26px; color:#888; cursor:pointer;">&times;</button>
     <h2 style="margin-top:0; color:#1976d2;">Lịch sử Checklist</h2>
 
-        <!-- Biểu đồ -->
-        <canvas id="historyChart" style="width:100%; max-height:220px; margin-bottom:18px; background:#f8fafd; border-radius:10px;"></canvas>
 <!-- Biểu đồ Emotion/Performance Flow -->
 <div style="margin-bottom: 10px;">
   <label for="flowScale"><b>Chế độ hiển thị:</b></label>
@@ -255,6 +253,7 @@ btn.addEventListener('click', function() {
     document.getElementById('historyModalContent').style.animation = "fadeSlideIn 0.5s ease";
     renderHistoryTable();   // ✅ Gọi hàm render bảng khi mở modal
     updateHistoryHighlight();
+if (window.emotionChart) window.emotionChart.destroy();
     renderEmotionFlow();  // ✅ 
 });
 
@@ -318,6 +317,28 @@ document.getElementById("exportXLSXBtn").addEventListener("click", function () {
     </div>
    
     <script>
+
+// ✅ Hàm trả về ngày dạng dd/mm/yyyy
+// ✅ Hàm chuẩn hóa ngày
+function getSelectedDate() {
+  const pickerValue = document.getElementById('datePicker')?.value;
+  if (pickerValue) return pickerValue;
+
+  const d = new Date();
+  return d.getDate().toString().padStart(2, '0') + '/' +
+         (d.getMonth() + 1).toString().padStart(2, '0') + '/' +
+         d.getFullYear();
+}
+
+function getSafeDate() {
+  return getSelectedDate().replace(/\//g, "-");
+}
+
+// ✅ Hàm đổi / thành - để dùng key localStorage
+function getSafeDate() {
+  return getSelectedDate().replace(/\//g, "-");
+}
+
 // --- Dữ liệu checklist cho từng nhóm ---
 const checklistData = {
   chamCoThe: [
@@ -620,12 +641,10 @@ function updateChainHighlight(item, checked, anyChecked) {
   }
   box.style.display = '';
 }
-// --- Hàm lấy ngày hôm nay dạng dd/mm/yyyy ---
-function getTodayStr() {
-  const d = new Date();
-  return d.getDate().toString().padStart(2, '0') + '/' +
-         (d.getMonth() + 1).toString().padStart(2, '0') + '/' +
-         d.getFullYear();
+
+// Hàm an toàn cho localStorage (đổi / thành -)
+function getSafeDate() {
+  return getSelectedDate().replace(/\//g,"-");
 }
 const checklistValues = {
   // Chăm Cơ Thể
@@ -678,10 +697,7 @@ const checklistValues = {
   "Giãn cơ sau tập": { energy: 2, mood: 0, aura: 0 }
 };
 
-function getSelectedDate() {
-  // Lấy ngày từ lịch (datePicker) nếu có chọn, nếu trống thì dùng hôm nay
-  return document.getElementById('datePicker').value || getTodayStr();
-}
+
 const storyBank = [
   "Một làn khí nhẹ lan ra quanh bạn.",
   "Bạn thấy cơ thể mình ấm lên một chút.",
@@ -715,7 +731,7 @@ function recalcStatsForCurrentGroup() {
     return;
   }
   const items = checklistData[currentGroup];
-  const values = JSON.parse(localStorage.getItem('progress_' + currentGroup + '_' + getTodayStr()) || '[]');
+  const values = JSON.parse(localStorage.getItem(`progress_${currentGroup}_${getSafeDate()}`) || '[]');
   for (let i = 0; i < items.length; i++) {
     if (values[i]) {
       const val = checklistValues[items[i]] || { energy: 0, mood: 0, aura: 0 };
@@ -733,7 +749,7 @@ let statsDate = ""; // ngày hiện tại của thanh bar
 function loadStats() {
   // Lấy trạng thái thanh bar từ localStorage
   const saved = JSON.parse(localStorage.getItem('simStats') || '{}');
-  if (saved && saved.date === getTodayStr()) {
+  if (saved && saved.date === getSafeDate()) {
     stats.energy = saved.energy || 0;
     stats.mood = saved.mood || 0;
     stats.aura = saved.aura || 0;
@@ -742,13 +758,13 @@ function loadStats() {
     stats.energy = 0;
     stats.mood = 0;
     stats.aura = 0;
-    statsDate = getTodayStr();
+    statsDate = getSafeDate();
   }
   updateBars();
 }
 
 function saveStats(){
-  const today = getTodayStr();
+  const today = getSafeDate();
   localStorage.setItem('simStats', JSON.stringify({
     energy: stats.energy,
     mood: stats.mood,
@@ -833,7 +849,7 @@ setTimeout(() => {
     return;
   }
   const items = checklistData[group];
-  let currentValues = JSON.parse(localStorage.getItem('progress_' + group + '_' + getSelectedDate()) || '[]');
+  let currentValues = JSON.parse(localStorage.getItem(`progress_${group}_${getSafeDate()}`) || '[]');
   if (currentValues.length !== items.length) currentValues = items.map(() => false);
   // Kiểm tra có mục nào đã tick chưa
   let anyChecked = currentValues.some(Boolean);
@@ -857,12 +873,13 @@ setTimeout(() => {
   }
 
       const safeDate = getSelectedDate().replace(/\//g,"-");
-localStorage.setItem(`progress_${group}_${safeDate}`, JSON.stringify(currentValues));
+localStorage.setItem(`progress_${group}_${getSafeDate()}`, JSON.stringify(currentValues));
       // Kiểm tra lại số lượng tick sau khi thay đổi
       let anyCheckedNow = currentValues.some(Boolean);
       updateChainHighlight(item, cb.checked, anyCheckedNow);
       updateChecklistSummary(group, items, currentValues, anyCheckedNow);
       recalcStatsForCurrentGroup(); // luôn tính lại tổng bar cho toàn bộ checklist
+      syncCompareChart(); // ✅ lắng nghe tick checklist ngay khi render xong
     });
     label.appendChild(cb);
     label.append(' ' + item);
@@ -877,7 +894,7 @@ function onChecklistToggle(item, checked, group, idx, label) {
   // Không cộng trực tiếp vào stats, chỉ lưu trạng thái, recalcStatsForCurrentGroup sẽ tính lại
   fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
   updateChainHighlight(item, checked);
-  const progress = JSON.parse(localStorage.getItem('progress_' + group + '_' + getTodayStr()) || '[]');
+  const progress = JSON.parse(localStorage.getItem('progress_' + group + '_' + getSelectedDate().replace(/\//g,"-") ) || '[]');
   if (progress.length && progress.every(v => v)) {
     showMilestone(milestoneBank[Math.floor(Math.random() * milestoneBank.length)]);
   }
@@ -886,6 +903,7 @@ function onChecklistToggle(item, checked, group, idx, label) {
       bar.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
       setTimeout(()=> bar.style.boxShadow = "none", 600);
     });
+syncCompareChart();  // ✅ mỗi lần render checklist thì đồng bộ chart
 }
 
 // --- Đồng bộ checklist summary ---
@@ -978,7 +996,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   // Đảm bảo luôn có ngày hiển thị
   if (!document.getElementById('date').textContent) {
-    document.getElementById('date').textContent = getTodayStr();
+    document.getElementById('date').textContent = getSelectedDate().replace(/\//g,"-") ;
   }
   loadStats();
   // Không gọi renderHistoryTable nữa
@@ -990,7 +1008,7 @@ function triggerImport() {
 }
 function undoChange() {
   if (currentGroup) {
-    localStorage.removeItem('progress_' + currentGroup + '_' + getSelectedDate());
+    localStorage.removeItem('progress_' + currentGroup + '_' + getSafeDate());
     renderChecklist(currentGroup);
   }
 }
@@ -1058,7 +1076,7 @@ function renderCompareChart(groups) {
   const labels = groups.map(getGroupName);
   const completed = groups.map(g => {
     const items = checklistData[g] || [];
-    const values = JSON.parse(localStorage.getItem('progress_' + g + '_' + getTodayStr()) || '[]');
+    const values = JSON.parse(localStorage.getItem('progress_' + g + '_' + getSelectedDate().replace(/\//g,"-") ) || '[]');
     return values.filter(Boolean).length;
   });
   const totals = groups.map(g => (checklistData[g] || []).length);
@@ -1207,7 +1225,7 @@ const scaleMode = document.getElementById("flowScale")
   if (allKeys.length === 0) {
     ctx.font = "16px Arial";
     ctx.fillText("❌ Chưa có dữ liệu để vẽ Emotion Flow", 10, 50);
-  document.getElementById("historyChart").style.display = "none";
+  document.getElementById("emotionFlowChart").style.display = "none";
     return;
   }
 
@@ -1333,7 +1351,7 @@ if (showAura) {
 }
 
   // Render chart
-  document.getElementById("historyChart").style.display = "block";
+  document.getElementById("emotionFlowChart").style.display = "block";
   window.emotionChart = new Chart(ctx, {
     type: chartType,
     data: { labels, datasets },
@@ -1430,6 +1448,33 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function syncCompareChart() {
+  // Lắng nghe tick checklist ở chế độ 1 nhóm và update chart nếu đang mở multi-chart
+  document.querySelectorAll('#checklist-form input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (selectedGroups.length > 1) {
+        renderCompareChart(selectedGroups);
+      }
+    });
+  });
+}
+
+  // --- Dữ liệu File JSON ---
+function exportDataJSON() {
+  let data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith("progress_") || key === "simStats") { 
+      data[key] = JSON.parse(localStorage.getItem(key));
+    }
+  }
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "checklist-data.json";
+  link.click();
+}
 </script>
 </body>
 </html>
