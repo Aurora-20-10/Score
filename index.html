@@ -75,16 +75,18 @@ button { background-color: #4caf50; color: #fff; border: none; border-radius: 4p
       <button class="action-btn" onclick="undoChange()">Hoàn tác</button>
     </div>
     <h3 id="checklist-title"></h3>
-    <form id="checklist-form"></form>
-    <div class="result checklist-summary">
+    <div class="result checklist-summary" style="margin-bottom: 10px;">
       <div style="display:none"><span id="date"></span></div>
       <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
       <!-- <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div> -->
     </div>
+    <form id="checklist-form"></form>
+    <!-- Chain Highlight Box -->
+    <div id="chainHighlightBox" class="chain-highlight" style="min-height:38px; font-size:17px; font-weight:500; text-align:center; border-radius:10px; background:#f8fafd; box-shadow:0 2px 8px rgba(76,175,80,0.06); transition:all 0.3s; display:none;"></div>
     <!-- Đưa snippet lên ngay dưới checklist-form, thêm hiệu ứng đẹp -->
     <div id="snippet" class="snippet" style="margin-top:20px; min-height:32px; font-size:18px; color:#4caf50; font-weight:bold; text-align:center; transition: all 0.3s;"></div>
     <!-- Động lực nổi bật, hiệu ứng thành tựu ĐƯA XUỐNG DƯỚI CÙNG -->
-    <div id="motivationBox" style="margin:40px 0 0 0; text-align:center;">
+    <div id="motivationBox" style="margin:18px 0 0 0; text-align:center; display:none;">
       <span id="motivation" style="display:inline-block; background:linear-gradient(90deg,#e0ffe0,#b2f2bb,#e0ffe0); color:#1b5e20; font-size:26px; font-weight:bold; border-radius:16px; padding:18px 40px; box-shadow:0 2px 16px rgba(76,175,80,0.12); letter-spacing:1.5px; transition:all 0.3s; border:2px solid #43a047;"></span>
     </div>
     <!-- Đưa story box xuống dưới cùng -->
@@ -103,24 +105,35 @@ button { background-color: #4caf50; color: #fff; border: none; border-radius: 4p
 // --- Dữ liệu checklist cho từng nhóm ---
 const checklistData = {
   chamCoThe: [
-    "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix",
-    "1 bữa có rau xanh dạng lá (giúp tiêu hóa)",
-    "1–2 bữa có trái cây tươi",
-    "1 bữa có protein trắng (cá, gà, trứng)",
-    "Tránh để quá 6 tiếng không ăn",
-    "Không ăn khuya sau 9h tối (trừ khi tập nặng)"
+    "Uống đủ 1.5–2L nước",
+    "Rửa mặt sáng + tối",
+    "Thoa lotion body",
+    "Chải tóc – xịt dưỡng",
+    "Đánh răng 2 lần/ngày",
+    "Tẩy trang/lau sạch mặt",
+    "Làm sạch môi – dưỡng môi",
+    "Tắm nước ấm buổi tối",
+    "Dưỡng da body tối",
+    "Kéo giãn chân/gập bụng nhẹ"
   ],
   chamNhaCua: [
-    "Quét dọn nhà cửa",
-    "Lau chùi bếp, bàn, ghế",
-    "Sắp xếp lại đồ đạc gọn gàng",
-    "Tưới cây, chăm cây cảnh"
+    "Xếp chăn gọn sau khi ngủ dậy",
+    "Rửa chén bát trong ngày",
+    "Quét nhà/lau chùi điểm bẩn",
+    "Không để đồ lung tung dưới đất",
+    "Dọn đồ trên bàn về đúng chỗ",
+    "Đổ rác (tối)"
   ],
   dinhDuong: [
-    "Ăn sáng đủ chất",
-    "Uống đủ nước trong ngày",
-    "Ăn trái cây hoặc rau xanh",
-    "Hạn chế đồ ngọt, nước ngọt"
+    "1 cốc nước ngay sau ngủ dậy",
+    "Uống nước 1.5–2L chia sáng/chiều/tối",
+    "2–3 bữa chính đủ chất",
+    "1–2 bữa phụ nhẹ",
+    "1 bữa có rau xanh lá",
+    "1–2 bữa có trái cây",
+    "1 bữa protein trắng",
+    "Không để quá 6 tiếng không ăn",
+    "Không ăn khuya sau 9h tối"
   ],
   langPhi: [
     "Không mua đồ không cần thiết",
@@ -147,6 +160,250 @@ const checklistData = {
     "Giãn cơ sau tập"
   ]
 };
+
+// --- Chain relations: mapping checklist items to their cause-effect chains ---
+const chainRelations = {
+  // Chăm Cơ Thể
+  "Uống đủ 1.5–2L nước": [
+    { text: "Cơ thể được bù nước", positive: true },
+    { text: "Tuần hoàn tốt hơn", positive: true },
+    { text: "Da căng & sạch", positive: true },
+    { text: "Năng lượng + tập trung", positive: true }
+  ],
+  "Rửa mặt sáng + tối": [
+    { text: "Da sạch bụi/dầu", positive: true },
+    { text: "Giảm mụn & dị ứng", positive: true },
+    { text: "Tự tin khi giao tiếp", positive: true }
+  ],
+  "Thoa lotion body": [
+    { text: "Da ẩm & mềm", positive: true },
+    { text: "Tránh khô nứt", positive: true },
+    { text: "Cảm giác dễ chịu", positive: true },
+    { text: "Aura dịu", positive: true }
+  ],
+  "Chải tóc – xịt dưỡng": [
+    { text: "Tóc gọn & bóng", positive: true },
+    { text: "Ngoại hình chỉnh chu", positive: true },
+    { text: "Tự tin hơn", positive: true }
+  ],
+  "Đánh răng 2 lần/ngày": [
+    { text: "Hơi thở thơm & sạch", positive: true },
+    { text: "Tự tin trò chuyện", positive: true },
+    { text: "Aura tốt", positive: true }
+  ],
+  "Tẩy trang/lau sạch mặt": [
+    { text: "Lỗ chân lông sạch", positive: true },
+    { text: "Giảm mụn", positive: true },
+    { text: "Cảm giác nhẹ mặt", positive: true }
+  ],
+  "Làm sạch môi – dưỡng môi": [
+    { text: "Môi mềm & hồng", positive: true },
+    { text: "Gương mặt tươi", positive: true },
+    { text: "Tự tin", positive: true }
+  ],
+  "Tắm nước ấm buổi tối": [
+    { text: "Giảm căng cơ & stress", positive: true },
+    { text: "Ngủ sâu hơn", positive: true },
+    { text: "Sáng dậy tỉnh táo", positive: true }
+  ],
+  "Dưỡng da body tối": [
+    { text: "Da mềm, mịn", positive: true },
+    { text: "Cảm giác 'chăm sóc bản thân'", positive: true },
+    { text: "Tự tin & dễ chịu", positive: true }
+  ],
+  "Kéo giãn chân/gập bụng nhẹ": [
+    { text: "Giảm đau cơ sau ngồi lâu", positive: true },
+    { text: "Lưu thông máu", positive: true },
+    { text: "Dáng form ổn", positive: true }
+  ],
+  // Chăm Nhà Cửa
+  "Xếp chăn gọn sau khi ngủ dậy": [
+    { text: "Giường gọn gàng", positive: true },
+    { text: "Không gian sạch", positive: true },
+    { text: "Não ít rối", positive: true },
+    { text: "Mood tốt", positive: true }
+  ],
+  "Rửa chén bát trong ngày": [
+    { text: "Nhà bếp sạch", positive: true },
+    { text: "Không mùi hôi", positive: true },
+    { text: "Tâm lý thoải mái", positive: true },
+    { text: "Dễ nấu ăn", positive: true }
+  ],
+  "Quét nhà/lau chùi điểm bẩn": [
+    { text: "Không gian sạch sẽ", positive: true },
+    { text: "Aura nhà 'thở'", positive: true },
+    { text: "Tâm trạng nhẹ", positive: true }
+  ],
+  "Không để đồ lung tung dưới đất": [
+    { text: "Phòng gọn", positive: true },
+    { text: "Giảm vướng víu", positive: true },
+    { text: "Cảm giác kiểm soát", positive: true }
+  ],
+  "Dọn đồ trên bàn về đúng chỗ": [
+    { text: "Bàn sạch", positive: true },
+    { text: "Não bớt loạn", positive: true },
+    { text: "Hiệu suất học/làm việc cao hơn", positive: true }
+  ],
+  "Đổ rác (tối)": [
+    { text: "Không mùi hôi, không kiến gián", positive: true },
+    { text: "Không gian 'sạch khí'", positive: true }
+  ],
+  // Dinh Dưỡng – Ẩm Thực
+  "1 cốc nước ngay sau ngủ dậy": [
+    { text: "Thải độc đêm", positive: true },
+    { text: "Hệ tiêu hóa kích hoạt", positive: true },
+    { text: "Não tỉnh", positive: true }
+  ],
+  "Uống nước 1.5–2L chia sáng/chiều/tối": [
+    { text: "Da ẩm & sạch", positive: true },
+    { text: "Thận khỏe", positive: true },
+    { text: "Năng lượng đều", positive: true }
+  ],
+  "2–3 bữa chính đủ chất": [
+    { text: "Đường huyết ổn", positive: true },
+    { text: "Năng lượng bền", positive: true },
+    { text: "Không uể oải", positive: true }
+  ],
+  "1–2 bữa phụ nhẹ": [
+    { text: "Không đói gắt", positive: true },
+    { text: "Kiểm soát ăn vặt", positive: true },
+    { text: "Cân nặng ổn định", positive: true }
+  ],
+  "1 bữa có rau xanh lá": [
+    { text: "Chất xơ", positive: true },
+    { text: "Hệ tiêu hóa khỏe", positive: true },
+    { text: "Da đẹp", positive: true }
+  ],
+  "1–2 bữa có trái cây": [
+    { text: "Vitamin", positive: true },
+    { text: "Miễn dịch tốt", positive: true },
+    { text: "Cảm giác tươi mới", positive: true }
+  ],
+  "1 bữa protein trắng": [
+    { text: "Cơ bắp phục hồi", positive: true },
+    { text: "Giảm mệt", positive: true },
+    { text: "Ngủ tốt hơn", positive: true }
+  ],
+  "Không để quá 6 tiếng không ăn": [
+    { text: "Đường huyết không rớt", positive: true },
+    { text: "Không chóng mặt", positive: true },
+    { text: "Năng suất ổn", positive: true }
+  ],
+  "Không ăn khuya sau 9h tối": [
+    { text: "Dạ dày nghỉ", positive: true },
+    { text: "Ngủ ngon hơn", positive: true },
+    { text: "Sáng tỉnh", positive: true }
+  ],
+  // Kiểm Soát Lãng Phí
+  "Không mua đồ không cần thiết": [
+    { text: "Giữ tiền", positive: true },
+    { text: "Giảm áp lực tài chính", positive: true },
+    { text: "Đầu óc nhẹ", positive: true }
+  ],
+  "Không tiêu tiền cho thói quen xấu": [
+    { text: "Ít cảm giác tội lỗi", positive: true },
+    { text: "Tinh thần ổn định", positive: true }
+  ],
+  "Kiểm tra ví trước khi ra ngoài": [
+    { text: "Kiểm soát chi tiêu", positive: true },
+    { text: "Hạn chế mua impulsive", positive: true }
+  ],
+  "Ghi chú chi tiêu trong ngày": [
+    { text: "Nhìn rõ dòng tiền", positive: true },
+    { text: "Quản lý tốt", positive: true },
+    { text: "Ít stress tài chính", positive: true }
+  ],
+  // Nâng Tầng Aura
+  "Thiền hoặc thở sâu 5 phút": [
+    { text: "Giảm stress", positive: true },
+    { text: "Não tĩnh", positive: true },
+    { text: "Aura sáng", positive: true }
+  ],
+  "Đọc sách phát triển bản thân": [
+    { text: "Tư duy mở", positive: true },
+    { text: "Tự tin", positive: true },
+    { text: "Aura mạnh", positive: true }
+  ],
+  "Viết nhật ký cảm xúc": [
+    { text: "Xả cảm xúc", positive: true },
+    { text: "Cân bằng", positive: true },
+    { text: "Aura tĩnh", positive: true }
+  ],
+  "Nghe nhạc thư giãn": [
+    { text: "Não reset", positive: true },
+    { text: "Thoải mái", positive: true },
+    { text: "Aura dịu", positive: true }
+  ],
+  // Sở Thích – Dưỡng Khí
+  "Vẽ/trang trí/viết lách": [
+    { text: "Kích thích sáng tạo", positive: true },
+    { text: "Tâm an", positive: true },
+    { text: "Aura nghệ", positive: true }
+  ],
+  "Chơi nhạc cụ hoặc nghe nhạc": [
+    { text: "Endorphin", positive: true },
+    { text: "Vui vẻ", positive: true },
+    { text: "Aura sáng", positive: true }
+  ],
+  "Tập thể thao nhẹ nhàng": [
+    { text: "Cơ thể linh hoạt", positive: true },
+    { text: "Mood tốt", positive: true },
+    { text: "Aura khỏe", positive: true }
+  ],
+  "Chăm sóc cây cảnh/thú cưng": [
+    { text: "Nuôi dưỡng cảm xúc", positive: true },
+    { text: "Aura ấm", positive: true }
+  ],
+  // Thể Dục – Cơ Xương – Dáng Form
+  "Khởi động 5 phút": [
+    { text: "Giảm nguy cơ chấn thương", positive: true },
+    { text: "Tập hiệu quả", positive: true }
+  ],
+  "Tập thể dục ít nhất 15 phút": [
+    { text: "Endorphin", positive: true },
+    { text: "Năng lượng tăng", positive: true },
+    { text: "Ngủ sâu", positive: true }
+  ],
+  "Đi bộ 5000 bước trở lên": [
+    { text: "Tim mạch & phổi khỏe", positive: true },
+    { text: "Lưu thông máu", positive: true },
+    { text: "Mood tốt", positive: true }
+  ],
+  "Giãn cơ sau tập": [
+    { text: "Cơ phục hồi", positive: true },
+    { text: "Giảm đau", positive: true },
+    { text: "Tập đều hơn", positive: true }
+  ]
+};
+
+
+
+// --- Cập nhật chain highlight box ---
+function updateChainHighlight(item, checked, anyChecked) {
+  const box = document.getElementById('chainHighlightBox');
+  if (!box) return;
+  if (!anyChecked) {
+    box.style.display = 'none';
+    box.textContent = '';
+    return;
+  }
+  let chain = chainRelations[item];
+  if (!chain) {
+    box.textContent = '';
+    box.style.background = '#f8fafd';
+    box.style.display = '';
+    return;
+  }
+  // Nếu bỏ tick, hiển thị chuỗi tiêu cực (đảo ngược, màu đỏ)
+  if (!checked) {
+    box.innerHTML = chain.map(e => `<span style='color:#e53935;'>${e.text}</span>`).reverse().join(' <span style="color:#e53935;font-weight:bold;">→</span> ');
+    box.style.background = '#fff3f3';
+  } else {
+    box.innerHTML = chain.map(e => `<span style='color:#388e3c;'>${e.text}</span>`).join(' <span style="color:#388e3c;font-weight:bold;">→</span> ');
+    box.style.background = '#e8f5e9';
+  }
+  box.style.display = '';
+}
 // --- Hàm lấy ngày hôm nay dạng dd/mm/yyyy ---
 function getTodayStr() {
   const d = new Date();
@@ -154,13 +411,35 @@ function getTodayStr() {
          (d.getMonth() + 1).toString().padStart(2, '0') + '/' +
          d.getFullYear();
 }
- const checklistValues = {
-  "1–2 bữa phụ nhẹ: sữa hạt / trái cây / hạt mix": { energy: 2, mood: 2, aura: 1 },
-  "1 bữa có rau xanh dạng lá (giúp tiêu hóa)": { energy: 2, mood: 1, aura: 1 },
-  "1–2 bữa có trái cây tươi": { energy: 2, mood: 2, aura: 1 },
-  "1 bữa có protein trắng (cá, gà, trứng)": { energy: 3, mood: 1, aura: 1 },
-  "Tránh để quá 6 tiếng không ăn": { energy: 1, mood: 1, aura: 1 },
-  "Không ăn khuya sau 9h tối (trừ khi tập nặng)": { energy: 2, mood: 1, aura: 1 },
+const checklistValues = {
+  // Chăm Cơ Thể
+  "Uống đủ 1.5–2L nước": { energy: 2, mood: 1, aura: 1 },
+  "Rửa mặt sáng + tối": { energy: 1, mood: 1, aura: 1 },
+  "Thoa lotion body": { energy: 1, mood: 1, aura: 1 },
+  "Chải tóc – xịt dưỡng": { energy: 1, mood: 1, aura: 1 },
+  "Đánh răng 2 lần/ngày": { energy: 1, mood: 1, aura: 1 },
+  "Tẩy trang/lau sạch mặt": { energy: 1, mood: 1, aura: 1 },
+  "Làm sạch môi – dưỡng môi": { energy: 1, mood: 1, aura: 1 },
+  "Tắm nước ấm buổi tối": { energy: 1, mood: 1, aura: 1 },
+  "Dưỡng da body tối": { energy: 1, mood: 1, aura: 1 },
+  "Kéo giãn chân/gập bụng nhẹ": { energy: 1, mood: 1, aura: 1 },
+  // Chăm Nhà Cửa
+  "Xếp chăn gọn sau khi ngủ dậy": { energy: 1, mood: 1, aura: 1 },
+  "Rửa chén bát trong ngày": { energy: 1, mood: 1, aura: 1 },
+  "Quét nhà/lau chùi điểm bẩn": { energy: 1, mood: 1, aura: 1 },
+  "Không để đồ lung tung dưới đất": { energy: 1, mood: 1, aura: 1 },
+  "Dọn đồ trên bàn về đúng chỗ": { energy: 1, mood: 1, aura: 1 },
+  "Đổ rác (tối)": { energy: 1, mood: 1, aura: 1 },
+  // Dinh Dưỡng – Ẩm Thực
+  "1 cốc nước ngay sau ngủ dậy": { energy: 2, mood: 1, aura: 1 },
+  "Uống nước 1.5–2L chia sáng/chiều/tối": { energy: 2, mood: 1, aura: 1 },
+  "2–3 bữa chính đủ chất": { energy: 2, mood: 2, aura: 1 },
+  "1–2 bữa phụ nhẹ": { energy: 2, mood: 2, aura: 1 },
+  "1 bữa có rau xanh lá": { energy: 2, mood: 1, aura: 1 },
+  "1–2 bữa có trái cây": { energy: 2, mood: 2, aura: 1 },
+  "1 bữa protein trắng": { energy: 3, mood: 1, aura: 1 },
+  "Không để quá 6 tiếng không ăn": { energy: 1, mood: 1, aura: 1 },
+  "Không ăn khuya sau 9h tối": { energy: 2, mood: 1, aura: 1 },
   // Kiểm soát lãng phí
   "Không mua đồ không cần thiết": { energy: 0, mood: 0, aura: 5 },
   "Không tiêu tiền cho thói quen xấu": { energy: 0, mood: 0, aura: 5 },
@@ -259,16 +538,33 @@ function saveStats(){
 }
 
 function updateBars(){
-  // Nếu giá trị là 0 thì bar sẽ không hiện (ẩn fill)
+  // Tính tổng tối đa cho từng loại (energy, mood, aura) dựa trên checklist hiện tại
+  let maxEnergy = 0, maxMood = 0, maxAura = 0;
+  if (currentGroup && checklistData[currentGroup]) {
+    const items = checklistData[currentGroup];
+    for (let i = 0; i < items.length; i++) {
+      const val = checklistValues[items[i]] || { energy: 0, mood: 0, aura: 0 };
+      maxEnergy += val.energy;
+      maxMood += val.mood;
+      maxAura += val.aura;
+    }
+  } else {
+    // Nếu không có nhóm nào, mặc định max là 100 để bar không bị NaN
+    maxEnergy = maxMood = maxAura = 100;
+  }
+  // Nếu max = 0 thì bar sẽ không hiện (ẩn fill)
   const energyBar = document.getElementById('energyBar');
   const moodBar = document.getElementById('moodBar');
   const auraBar = document.getElementById('auraBar');
-  energyBar.style.width = stats.energy > 0 ? stats.energy + '%' : '0%';
-  moodBar.style.width = stats.mood > 0 ? stats.mood + '%' : '0%';
-  auraBar.style.width = stats.aura > 0 ? stats.aura + '%' : '0%';
-  energyBar.style.background = stats.energy > 0 ? "#FFD700" : "transparent";
-  moodBar.style.background = stats.mood > 0 ? "#4DB6E2" : "transparent";
-  auraBar.style.background = stats.aura > 0 ? "#B388EB" : "transparent";
+  const energyPercent = (maxEnergy > 0) ? Math.round((stats.energy / maxEnergy) * 100) : 0;
+  const moodPercent = (maxMood > 0) ? Math.round((stats.mood / maxMood) * 100) : 0;
+  const auraPercent = (maxAura > 0) ? Math.round((stats.aura / maxAura) * 100) : 0;
+  energyBar.style.width = energyPercent > 0 ? energyPercent + '%' : '0%';
+  moodBar.style.width = moodPercent > 0 ? moodPercent + '%' : '0%';
+  auraBar.style.width = auraPercent > 0 ? auraPercent + '%' : '0%';
+  energyBar.style.background = energyPercent > 0 ? "#FFD700" : "transparent";
+  moodBar.style.background = moodPercent > 0 ? "#4DB6E2" : "transparent";
+  auraBar.style.background = auraPercent > 0 ? "#B388EB" : "transparent";
 }
 
 // --- Hiệu ứng story ---
@@ -299,14 +595,24 @@ function renderChecklist(group) {
   const checklistDiv = document.getElementById('checklist-form');
   checklistDiv.innerHTML = '';
   fadeSnippet('');
+  const chainBox = document.getElementById('chainHighlightBox');
+  const motivationBox = document.getElementById('motivationBox');
   if (!group || !checklistData[group]) {
-    updateSummary(0, 0, "Chưa xác định", "");
+    chainBox.style.display = 'none';
+    motivationBox.style.display = 'none';
+    updateSummary(0, 0, "Chưa xác định", "", false);
     recalcStatsForCurrentGroup();
     return;
   }
   const items = checklistData[group];
   let currentValues = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
   if (currentValues.length !== items.length) currentValues = items.map(() => false);
+  // Kiểm tra có mục nào đã tick chưa
+  let anyChecked = currentValues.some(Boolean);
+  if (!anyChecked) {
+    chainBox.style.display = 'none';
+    motivationBox.style.display = 'none';
+  }
   items.forEach((item, idx) => {
     const label = document.createElement('label');
     const cb = document.createElement('input');
@@ -317,15 +623,17 @@ function renderChecklist(group) {
       currentValues[idx] = cb.checked;
       label.classList.toggle('checked', cb.checked);
       localStorage.setItem('progress_' + group, JSON.stringify(currentValues));
-      onChecklistToggle(item, cb.checked, group, idx, label);
-      updateChecklistSummary(group, items, currentValues);
+      // Kiểm tra lại số lượng tick sau khi thay đổi
+      let anyCheckedNow = currentValues.some(Boolean);
+      updateChainHighlight(item, cb.checked, anyCheckedNow);
+      updateChecklistSummary(group, items, currentValues, anyCheckedNow);
       recalcStatsForCurrentGroup(); // luôn tính lại tổng bar cho toàn bộ checklist
     });
     label.appendChild(cb);
     label.append(' ' + item);
     checklistDiv.appendChild(label);
   });
-  updateChecklistSummary(group, items, currentValues);
+  updateChecklistSummary(group, items, currentValues, anyChecked);
   recalcStatsForCurrentGroup(); // luôn tính lại tổng bar cho toàn bộ checklist
 }
 
@@ -333,6 +641,7 @@ function renderChecklist(group) {
 function onChecklistToggle(item, checked, group, idx, label) {
   // Không cộng trực tiếp vào stats, chỉ lưu trạng thái, recalcStatsForCurrentGroup sẽ tính lại
   fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
+  updateChainHighlight(item, checked);
   const progress = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
   if (progress.length && progress.every(v => v)) {
     showMilestone(milestoneBank[Math.floor(Math.random() * milestoneBank.length)]);
@@ -340,28 +649,35 @@ function onChecklistToggle(item, checked, group, idx, label) {
 }
 
 // --- Đồng bộ checklist summary ---
-function updateChecklistSummary(group, items, values) {
+function updateChecklistSummary(group, items, values, anyChecked) {
   const count = values.filter(Boolean).length;
   const total = items.length;
   const rank = getRank(count, total);
   const motivation = getMotivation(rank);
-  updateSummary(count, total, rank, motivation);
+  updateSummary(count, total, rank, motivation, anyChecked);
   // Không gọi saveHistory nữa vì đã xóa bảng thành tựu
 }
 
 // --- Cập nhật vùng summary ---
-function updateSummary(count, total, rank, motivation) {
+function updateSummary(count, total, rank, motivation, anyChecked) {
   document.getElementById('count').textContent = count;
   document.getElementById('total').textContent = total;
   // Động lực nổi bật dưới cùng
+  const motivationBox = document.getElementById('motivationBox');
   const motivationSpan = document.getElementById('motivation');
-  motivationSpan.textContent = motivation;
-  motivationSpan.style.opacity = 0;
-  setTimeout(() => {
-    motivationSpan.style.opacity = 1;
-    motivationSpan.style.transform = "scale(1.08)";
-    setTimeout(() => { motivationSpan.style.transform = "scale(1)"; }, 200);
-  }, 80);
+  if (anyChecked) {
+    motivationBox.style.display = '';
+    motivationSpan.textContent = motivation;
+    motivationSpan.style.opacity = 0;
+    setTimeout(() => {
+      motivationSpan.style.opacity = 1;
+      motivationSpan.style.transform = "scale(1.08)";
+      setTimeout(() => { motivationSpan.style.transform = "scale(1)"; }, 200);
+    }, 80);
+  } else {
+    motivationBox.style.display = 'none';
+    motivationSpan.textContent = '';
+  }
   // Không cần cập nhật ngày/xếp loại nữa
 }
 
@@ -552,5 +868,19 @@ function getGroupName(key) {
   return map[key] || key;
 }
 </script>
+</body>
+<style>
+#chainHighlightBox {
+  border: 2px solid #b2dfdb;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  min-height: 38px;
+  padding: 8px 12px;
+  transition: background 0.3s, border 0.3s, box-shadow 0.3s;
+}
+.chain-highlight {
+  /* giữ lại class cho hiệu ứng cũ nếu có */
+}
+</style>
 </body>
 </html>
