@@ -1,0 +1,12 @@
+body { font-family: Arial, sans-serif; background-color: #f5f8fa; margin: 0; padding: 30px; }
+.container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+h2 { color: #333; margin-top: 0; }
+.bars { display: flex; gap: 10px; margin-bottom: 20px; }
+.bar { flex: 1; background: #eee; border-radius: 6px; position: relative; height: 24px; margin: 0 5px; }
+.bar span { position: absolute; left: 8px; top: 0; font-size: 12px; color: #000; line-height: 24px; z-index: 2; }
+.fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
+button { background-color: #4caf50; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button:hover { background-color: #43a047; }
+.hidden { display: none; }
+.modal { z-index:10000; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.18); display:none; align-items:center; justify-content:center; }
+.modal-content { background:#fff; border-radius:14px; max-width:900px; width:98vw; max-height:90vh; overflow:auto; box-shadow:0 4px 32px rgba(25,118,210,0.13); padding:16px 20px; position:relative; }

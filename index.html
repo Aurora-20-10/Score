@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Web Đánh Giá Checklist</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Đánh Giá Checklist Cá Nhân</h2>
+    <div class="bars">
+      <div class="bar"><span>Energy ⚡</span><div class="fill" id="energyBar"></div></div>
+      <div class="bar"><span>Mood 😊</span><div class="fill" id="moodBar"></div></div>
+      <div class="bar"><span>Aura ✨</span><div class="fill" id="auraBar"></div></div>
+    </div>
+
+    <label for="category">Chọn nhóm checklist:</label>
+    <select id="category" multiple></select>
+
+    <canvas id="compareChart" class="hidden"></canvas>
+    <div id="progressContainer" class="progress hidden"><div id="progressBar"></div></div>
+
+    <div class="actions">
+      <input type="text" id="datePicker" class="date-picker" readonly />
+      <button class="action-btn" onclick="triggerImport()">Nhập dữ liệu</button>
+      <input type="file" id="import-file" accept=".json" class="hidden" />
+      <button class="action-btn" onclick="undoChange()">Hoàn tác</button>
+    </div>
+
+    <h3 id="checklist-title"></h3>
+    <div class="result checklist-summary">
+      <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
+    </div>
+    <form id="checklist-form"></form>
+
+    <div style="text-align:right; margin: 10px 0 0 0;">
+      <button id="viewHistoryBtn" type="button" class="history-btn">📆 Xem lịch sử</button>
+    </div>
+
+    <!-- Modal popup lịch sử -->
+    <div id="historyModal" class="modal hidden">
+      <div id="historyModalContent" class="modal-content">
+        <button id="closeHistoryModal" class="close-btn">&times;</button>
+        <h2>Lịch sử Checklist</h2>
+        <canvas id="historyChart"></canvas>
+
+        <div>
+          <label for="flowScale"><b>Chế độ hiển thị:</b></label>
+          <select id="flowScale">
+            <option value="daily" selected>Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="chartType"><b>Loại biểu đồ:</b></label>
+          <select id="chartType">
+            <option value="line" selected>Line</option>
+            <option value="radar">Radar</option>
+            <option value="bar">Stacked Bar</option>
+          </select>
+        </div>
+
+        <div id="layerToggleBox">
+          <label><input type="checkbox" id="toggleEnergy" checked> ⚡ Energy</label>
+          <label><input type="checkbox" id="toggleMood" checked> 😊 Mood</label>
+          <label><input type="checkbox" id="toggleAura" checked> ✨ Aura</label>
+        </div>
+
+        <canvas id="emotionFlowChart"></canvas>
+        <div id="historyHighlight"></div>
+
+        <table id="historyTable">
+          <thead>
+            <tr><th>Ngày</th><th>Đã tick</th><th>Chi tiết</th><th>❌</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="export-buttons">
+          <button id="exportCSVBtn" type="button">⬇ Xuất CSV</button>
+          <button id="exportXLSXBtn" type="button">⬇ Xuất Excel</button>
+          <span id="exportMsg"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="chainHighlightBox" class="chain-highlight"></div>
+    <div id="snippet" class="snippet"></div>
+
+    <div id="motivationBox" style="display:none;">
+      <span id="motivation"></span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
