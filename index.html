@@ -66,11 +66,10 @@
       <option value="soThich">6. 🎭 Sở Thích – Dưỡng Khí</option>
       <option value="theDuc">7. 🏃 Thể Dục – Cơ Xương – Dáng Form</option>
     </select>
-    <canvas id="compareChart" class="hidden"></canvas>
+    <canvas id="compareChart" class="hidden" style="margin-top:32px; background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(76,175,80,0.08);"></canvas>
     <div id="progressContainer" class="progress hidden"><div id="progressBar"></div></div>
     <div class="actions">
       <input type="text" id="datePicker" class="date-picker" readonly />
-      <button class="action-btn" onclick="saveProgress()">Lưu kết quả</button>
       <button class="action-btn" onclick="triggerImport()">Nhập dữ liệu</button>
       <input type="file" id="import-file" accept=".json" class="hidden" />
       <button class="action-btn" onclick="undoChange()">Hoàn tác</button>
@@ -78,18 +77,24 @@
     <h3 id="checklist-title"></h3>
     <form id="checklist-form"></form>
     <div class="result checklist-summary">
-      <div><strong>Ngày:</strong> <span id="date"></span></div>
+      <!-- <div><strong>Ngày:</strong> <span id="date"></span></div> -->
       <div><strong>Đã hoàn thành:</strong> <span id="count">0</span>/<span id="total">0</span></div>
-      <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div>
-      <p id="motivation" class="motivational"></p>
+      <!-- <div><strong>Xếp loại:</strong> <span id="rank" class="grade">Chưa xác định</span></div> -->
     </div>
-    <div id="storyBox"><div id="storyMessages"></div></div>
-    <div id="snippet" class="snippet"></div>
-    <div id="milestoneModal" class="modal hidden">
-      <div class="modal-content">
-        <div class="icon">🎉</div>
-        <p id="milestoneText"></p>
-        <button id="closeModal">Đóng</button>
+    <!-- Đưa snippet lên ngay dưới checklist-form, thêm hiệu ứng đẹp -->
+    <div id="snippet" class="snippet" style="margin-top:20px; min-height:32px; font-size:18px; color:#4caf50; font-weight:bold; text-align:center; transition: all 0.3s;"></div>
+    <!-- Động lực nổi bật, hiệu ứng thành tựu ĐƯA XUỐNG DƯỚI CÙNG -->
+    <div id="motivationBox" style="margin:40px 0 0 0; text-align:center;">
+      <span id="motivation" style="display:inline-block; background:linear-gradient(90deg,#e0ffe0,#b2f2bb,#e0ffe0); color:#1b5e20; font-size:26px; font-weight:bold; border-radius:16px; padding:18px 40px; box-shadow:0 2px 16px rgba(76,175,80,0.12); letter-spacing:1.5px; transition:all 0.3s; border:2px solid #43a047;"></span>
+    </div>
+    <!-- Đưa story box xuống dưới cùng -->
+    <div id="storyBox" style="display:none"><div id="storyMessages"></div></div>
+    <!-- Modal thành tựu đẹp hơn -->
+    <div id="milestoneModal" class="modal hidden" style="z-index:9999;">
+      <div class="modal-content" style="text-align:center; padding:32px 24px; border-radius:16px; background:#fff; box-shadow:0 4px 32px rgba(76,175,80,0.15);">
+        <div class="icon" style="font-size:48px; margin-bottom:12px;">🎉</div>
+        <p id="milestoneText" style="font-size:22px; color:#388e3c; font-weight:bold; margin-bottom:16px;"></p>
+        <button id="closeModal" style="background:#4caf50; color:#fff; border:none; border-radius:8px; padding:8px 24px; font-size:16px; cursor:pointer;">Đóng</button>
         <div id="milestoneStoryMessages"></div>
       </div>
     </div>
@@ -212,9 +217,33 @@ let compareChart;
 const categorySelect = document.getElementById('category');
 
 // --- Thanh trạng thái ---
-// Reset về 0 mỗi ngày, cộng dần khi tick checklist
 const stats = { energy: 0, mood: 0, aura: 0 };
 let statsDate = ""; // ngày hiện tại của thanh bar
+
+// --- Tính năng chính ---
+function recalcStatsForCurrentGroup() {
+  // Reset stats
+  stats.energy = 0; stats.mood = 0; stats.aura = 0;
+  // Tính tổng tất cả mục nhỏ đã tick của tất cả nhóm (không chỉ currentGroup)
+  Object.keys(checklistData).forEach(group => {
+    const items = checklistData[group];
+    const values = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
+    items.forEach((item, idx) => {
+      if (values[idx]) {
+        const val = checklistValues[item] || { energy: 0, mood: 0, aura: 0 };
+        stats.energy += val.energy;
+        stats.mood += val.mood;
+        stats.aura += val.aura;
+      }
+    });
+  });
+  // Clamp to 100
+  stats.energy = Math.min(100, stats.energy);
+  stats.mood = Math.min(100, stats.mood);
+  stats.aura = Math.min(100, stats.aura);
+  updateBars();
+  saveStats();
+}
 
 function getTodayStr() {
   // Đảm bảo format giống flatpickr (dd/mm/yyyy)
@@ -276,8 +305,14 @@ function updateBars(){
 // --- Hiệu ứng story ---
 function fadeSnippet(text){
   const snippetDiv = document.getElementById('snippet');
-  snippetDiv.style.opacity=0;
-  setTimeout(()=>{snippetDiv.textContent=text; snippetDiv.style.opacity=1;},50);
+  snippetDiv.style.opacity = 0;
+  snippetDiv.style.transform = "translateY(20px) scale(0.95)";
+  setTimeout(()=>{
+    snippetDiv.textContent = text;
+    snippetDiv.style.opacity = 1;
+    snippetDiv.style.transform = "translateY(0) scale(1.05)";
+    setTimeout(()=>{ snippetDiv.style.transform = "translateY(0) scale(1)"; }, 200);
+  }, 80);
 }
 
 // --- Modal thành tựu ---
@@ -292,6 +327,7 @@ function renderChecklist(group) {
   fadeSnippet('');
   if (!group || !checklistData[group]) {
     updateSummary(0, 0, "Chưa xác định", "");
+    recalcStatsForCurrentGroup();
     return;
   }
   const items = checklistData[group];
@@ -309,33 +345,23 @@ function renderChecklist(group) {
       localStorage.setItem('progress_' + group, JSON.stringify(currentValues));
       onChecklistToggle(item, cb.checked, group, idx, label);
       updateChecklistSummary(group, items, currentValues);
+      recalcStatsForCurrentGroup(); // luôn tính lại tổng bar cho toàn bộ checklist
     });
     label.appendChild(cb);
     label.append(' ' + item);
     checklistDiv.appendChild(label);
   });
   updateChecklistSummary(group, items, currentValues);
+  recalcStatsForCurrentGroup(); // luôn tính lại tổng bar cho toàn bộ checklist
 }
 
 // --- Khi tick checklist ---
 function onChecklistToggle(item, checked, group, idx, label) {
-  const val = checklistValues[item] || { energy: 0, mood: 0, aura: 0 };
-  if (checked) {
-    stats.energy = Math.min(100, stats.energy + val.energy);
-    stats.mood = Math.min(100, stats.mood + val.mood);
-    stats.aura = Math.min(100, stats.aura + val.aura);
-    fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
-  } else {
-    stats.energy = Math.max(0, stats.energy - val.energy);
-    stats.mood = Math.max(0, stats.mood - val.mood);
-    stats.aura = Math.max(0, stats.aura - val.aura);
-  }
-  saveStats();
-  updateBars();
+  // Không cộng trực tiếp vào stats, chỉ lưu trạng thái, recalcStatsForCurrentGroup sẽ tính lại
+  fadeSnippet(storyBank[Math.floor(Math.random() * storyBank.length)]);
   const progress = JSON.parse(localStorage.getItem('progress_' + group) || '[]');
   if (progress.length && progress.every(v => v)) {
-    milestoneText.textContent = milestoneBank[Math.floor(Math.random() * milestoneBank.length)];
-    modal.classList.remove('hidden');
+    showMilestone(milestoneBank[Math.floor(Math.random() * milestoneBank.length)]);
   }
 }
 
@@ -353,9 +379,16 @@ function updateChecklistSummary(group, items, values) {
 function updateSummary(count, total, rank, motivation) {
   document.getElementById('count').textContent = count;
   document.getElementById('total').textContent = total;
-  document.getElementById('rank').textContent = rank;
-  document.getElementById('motivation').textContent = motivation;
-  document.getElementById('date').textContent = (new Date()).toLocaleDateString('vi-VN');
+  // Động lực nổi bật dưới cùng
+  const motivationSpan = document.getElementById('motivation');
+  motivationSpan.textContent = motivation;
+  motivationSpan.style.opacity = 0;
+  setTimeout(() => {
+    motivationSpan.style.opacity = 1;
+    motivationSpan.style.transform = "scale(1.08)";
+    setTimeout(() => { motivationSpan.style.transform = "scale(1)"; }, 200);
+  }, 80);
+  // Không cần cập nhật ngày/xếp loại nữa
 }
 
 // --- Xếp loại ---
@@ -422,19 +455,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // --- Các nút chức năng ---
-function saveProgress() {
-  if (typeof currentGroup !== 'undefined' && currentGroup && checklistData[currentGroup]) {
-    const items = checklistData[currentGroup];
-    const values = JSON.parse(localStorage.getItem('progress_' + currentGroup) || '[]');
-    if (values.some(Boolean)) {
-      alert('Đã lưu kết quả cho ngày hôm nay!');
-    } else {
-      alert('Bạn chưa hoàn thành mục nào trong nhóm này.');
-    }
-  } else {
-    alert('Vui lòng chọn một nhóm checklist và thực hiện ít nhất một mục trước khi lưu.');
-  }
-}
 function triggerImport() {
   document.getElementById('import-file').click();
 }
@@ -445,7 +465,7 @@ function undoChange() {
   }
 }
 
-// --- Sự kiện chọn nhóm checklist ---
+// --- Sự kiện chọn nhóm checklist (KHÔI PHỤC logic bảng so sánh khi chọn nhiều nhóm) ---
 function handleCategoryChange() {
   if (window.Choices && choicesInstance) {
     selectedGroups = choicesInstance.getValue(true);
@@ -454,20 +474,108 @@ function handleCategoryChange() {
       currentGroup = selectedGroups[0];
       renderChecklist(currentGroup);
     } else if (selectedGroups.length > 1) {
+      document.getElementById('compareChart').classList.remove('hidden');
       document.getElementById('checklist-form').innerHTML = '';
       document.getElementById('snippet').textContent = '';
+      currentGroup = null;
       renderCompareChart(selectedGroups);
       updateSummary(0, 0, "Chưa xác định", "");
+      // Reset thanh bar khi chọn nhiều nhóm
+      stats.energy = 0; stats.mood = 0; stats.aura = 0;
+      updateBars();
     } else {
       document.getElementById('compareChart').classList.add('hidden');
       document.getElementById('checklist-form').innerHTML = '';
+      currentGroup = null;
       updateSummary(0, 0, "Chưa xác định", "");
+      stats.energy = 0; stats.mood = 0; stats.aura = 0;
+      updateBars();
     }
   } else {
-    currentGroup = categorySelect.value || categorySelect.options[categorySelect.selectedIndex].value;
-    document.getElementById('compareChart').classList.add('hidden');
-    renderChecklist(currentGroup);
+    // fallback cho select thường
+    const values = Array.from(categorySelect.selectedOptions).map(opt => opt.value).filter(Boolean);
+    if (values.length === 1) {
+      document.getElementById('compareChart').classList.add('hidden');
+      currentGroup = values[0];
+      renderChecklist(currentGroup);
+    } else if (values.length > 1) {
+      document.getElementById('compareChart').classList.remove('hidden');
+      document.getElementById('checklist-form').innerHTML = '';
+      document.getElementById('snippet').textContent = '';
+      currentGroup = null;
+      renderCompareChart(values);
+      updateSummary(0, 0, "Chưa xác định", "");
+      stats.energy = 0; stats.mood = 0; stats.aura = 0;
+      updateBars();
+    } else {
+      document.getElementById('compareChart').classList.add('hidden');
+      document.getElementById('checklist-form').innerHTML = '';
+      currentGroup = null;
+      updateSummary(0, 0, "Chưa xác định", "");
+      stats.energy = 0; stats.mood = 0; stats.aura = 0;
+      updateBars();
+    }
   }
+}
+
+// --- Biểu đồ so sánh khi chọn nhiều nhóm checklist ---
+function renderCompareChart(groups) {
+  const chartElem = document.getElementById('compareChart');
+  chartElem.classList.remove('hidden');
+  // Clear canvas before drawing new chart
+  chartElem.width = chartElem.width;
+  const ctx = chartElem.getContext('2d');
+  const labels = groups.map(getGroupName);
+  const completed = groups.map(g => {
+    const items = checklistData[g] || [];
+    const values = JSON.parse(localStorage.getItem('progress_' + g) || '[]');
+    return values.filter(Boolean).length;
+  });
+  const totals = groups.map(g => (checklistData[g] || []).length);
+
+  if (compareChart) compareChart.destroy();
+  compareChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Hoàn thành',
+          data: completed,
+          backgroundColor: '#4caf50'
+        },
+        {
+          label: 'Tổng mục',
+          data: totals,
+          backgroundColor: '#c8e6c9'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        datalabels: { anchor: 'end', align: 'top' }
+      },
+      scales: {
+        y: { beginAtZero: true, precision: 0 }
+      }
+    }
+  });
+}
+
+// --- Helper: lấy tên nhóm checklist ---
+function getGroupName(key) {
+  const map = {
+    chamCoThe: "Chăm Cơ Thể",
+    chamNhaCua: "Chăm Nhà Cửa",
+    dinhDuong: "Dinh Dưỡng",
+    langPhi: "Kiểm Soát Lãng Phí",
+    aura: "Nâng Tầng Aura",
+    soThich: "Sở Thích",
+    theDuc: "Thể Dục"
+  };
+  return map[key] || key;
 }
 </script>
 </body>
