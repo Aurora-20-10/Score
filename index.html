@@ -831,6 +831,7 @@ function renderChecklist(group) {
   const checklistDiv = document.getElementById('checklist-form');
   checklistDiv.innerHTML = '';
 
+
 // 🎬 Cinematic: checklist fade-in
 checklistDiv.style.opacity = 0;
 setTimeout(() => {
@@ -866,6 +867,14 @@ setTimeout(() => {
     cb.addEventListener('change', () => {
       currentValues[idx] = cb.checked;
       label.classList.toggle('checked', cb.checked);
+
+    // 🎯 GỌI TALOS NGAY KHI TICK/BỎ TICK
+    talosReply("Checklist mục: " + item + " vừa " + (cb.checked ? "được tick ✅" : "bỏ tick ❌"))
+      .then(reply => {
+        document.getElementById("talos-messages").innerHTML += 
+          "<div style='margin:5px 0; padding:5px; background:#f7f7f7; border-radius:4px;'>" + reply + "</div>";
+      });
+
 // 🎬 Cinematic: rung nhẹ khi tick
   if (cb.checked) {
     label.style.transform = "scale(1.05)";
@@ -1476,5 +1485,57 @@ function exportDataJSON() {
   link.click();
 }
 </script>
+
+<script>
+const OPENAI_API_KEY = "...";   // ← dán API key GPT của em vào đây
+
+
+let lastCall = 0;
+
+async function talosReply(userMessage) {
+  // 👉 TẠM DỪNG API (comment toàn bộ fetch):
+  // const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //     "Authorization": "Bearer " + OPENAI_API_KEY
+  //   },
+  //   body: JSON.stringify({
+  //     model: "gpt-3.5-turbo",
+  //     messages: [
+  //       { role: "system", content: "Bạn là Talos..." },
+  //       { role: "user", content: userMessage }
+  //     ]
+  //   })
+  // });
+
+  // const data = await response.json();
+  // if (!data.choices || !data.choices[0]) {
+  //   console.error("API Error:", data);
+  //   return "⚠️ API bị quá tải hoặc key đang bị giới hạn (429). Em thử tick chậm hơn hoặc đổi model nhé.";
+  // }
+
+  // 👉 TRẢ LỜI GIẢ LẬP
+  return "🤖 [TẠM DỪNG API] Talos Coach chưa kết nối GPT. Tick checklist vẫn ghi nhận.";
+}
+
+</script>
+<!-- 
+<div id="talos-chat" style="
+     position: fixed;
+     bottom: 20px;
+     right: 20px;
+     width: 300px;
+     height: 400px;
+     background: #fff;
+     border: 1px solid #ccc;
+     border-radius: 8px;
+     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+     overflow-y: auto;
+     padding: 10px;
+     font-family: Arial, sans-serif;">
+   <strong>Talos Coach</strong>
+   <div id="talos-messages"></div>
+</div>-->
 </body>
 </html>
